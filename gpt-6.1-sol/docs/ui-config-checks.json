@@ -1,0 +1,200 @@
+[
+  {
+    "fcs": "wide",
+    "generator": "capacity",
+    "legs": "biped",
+    "values": {
+      "stat-en": "180",
+      "stat-lock": "1.200",
+      "stat-regen": "10.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "capacity",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "180",
+      "stat-lock": "0.800",
+      "stat-regen": "7.50",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "balanced",
+    "legs": "biped",
+    "values": {
+      "stat-en": "120",
+      "stat-lock": "1.200",
+      "stat-regen": "15.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "balanced",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "120",
+      "stat-lock": "0.800",
+      "stat-regen": "11.25",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "recovery",
+    "legs": "biped",
+    "values": {
+      "stat-en": "90",
+      "stat-lock": "1.200",
+      "stat-regen": "20.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "recovery",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "90",
+      "stat-lock": "0.800",
+      "stat-regen": "15.00",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "capacity",
+    "legs": "biped",
+    "values": {
+      "stat-en": "180",
+      "stat-lock": "0.800",
+      "stat-regen": "10.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "capacity",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "180",
+      "stat-lock": "0.533",
+      "stat-regen": "7.50",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "balanced",
+    "legs": "biped",
+    "values": {
+      "stat-en": "120",
+      "stat-lock": "0.800",
+      "stat-regen": "15.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "balanced",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "120",
+      "stat-lock": "0.533",
+      "stat-regen": "11.25",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "recovery",
+    "legs": "biped",
+    "values": {
+      "stat-en": "90",
+      "stat-lock": "0.800",
+      "stat-regen": "20.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "recovery",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "90",
+      "stat-lock": "0.533",
+      "stat-regen": "15.00",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "capacity",
+    "legs": "biped",
+    "values": {
+      "stat-en": "180",
+      "stat-lock": "0.400",
+      "stat-regen": "10.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "capacity",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "180",
+      "stat-lock": "0.267",
+      "stat-regen": "7.50",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "balanced",
+    "legs": "biped",
+    "values": {
+      "stat-en": "120",
+      "stat-lock": "0.400",
+      "stat-regen": "15.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "balanced",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "120",
+      "stat-lock": "0.267",
+      "stat-regen": "11.25",
+      "stat-speed": "8.0"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "recovery",
+    "legs": "biped",
+    "values": {
+      "stat-en": "90",
+      "stat-lock": "0.400",
+      "stat-regen": "20.00",
+      "stat-speed": "10.0"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "recovery",
+    "legs": "quadruped",
+    "values": {
+      "stat-en": "90",
+      "stat-lock": "0.267",
+      "stat-regen": "15.00",
+      "stat-speed": "8.0"
+    }
+  }
+]

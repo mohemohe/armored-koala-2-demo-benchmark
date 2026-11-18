@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ARMORED KOALA 2 — DEMO</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0a0d12;
+    font-family:'Lucida Console',Monaco,monospace; color:#cfe0ee; }
+  #app { position:fixed; inset:0; }
+  canvas { display:block; }
+
+  /* ---------- HUD ---------- */
+  #hud { position:fixed; inset:0; pointer-events:none; display:none; }
+  .reticle { position:absolute; left:50%; top:50%; width:14px; height:14px;
+    transform:translate(-50%,-50%); }
+  .reticle::before,.reticle::after { content:''; position:absolute; background:#9fe8ff; }
+  .reticle::before { left:6px; top:0; width:2px; height:14px; }
+  .reticle::after { left:0; top:6px; width:14px; height:2px; }
+  .reticle.locked::before,.reticle.locked::after { background:#ff5040; }
+  .lock-circle { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    border:1px solid rgba(140,255,200,.35); border-radius:50%; display:none; }
+  .lock-circle.locked { border-color:#ff5040; box-shadow:0 0 12px rgba(255,80,60,.6); }
+  .lock-circle.acquiring { border-color:#ffd040; }
+  .emarker { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px;
+    border:1px solid #ff9050; transform:rotate(45deg); }
+  .emarker.target { border-color:#ff3020; background:rgba(255,48,32,.25); }
+  #fcsState { position:absolute; left:50%; top:calc(50% + 60px); transform:translateX(-50%);
+    font-size:11px; letter-spacing:2px; }
+  #denyLine { position:absolute; left:50%; top:calc(50% + 78px); transform:translateX(-50%);
+    color:#ff7050; font-size:13px; font-weight:bold; letter-spacing:2px; }
+  #msgLine { position:absolute; left:50%; top:16%; transform:translateX(-50%);
+    text-align:center; font-size:15px; letter-spacing:2px; text-shadow:0 0 6px #000; }
+  #objText { position:absolute; left:18px; top:16px; font-size:14px; letter-spacing:1px;
+    color:#ffd27a; text-shadow:0 0 4px #000; }
+  #objText .gate { color:#7dff8a; }
+  #sectorName { position:absolute; right:18px; top:16px; font-size:12px; letter-spacing:2px;
+    color:#8fb4d8; }
+  .barwrap { position:absolute; left:18px; width:280px; height:16px; background:#1a2028;
+    border:1px solid #3a4a5a; }
+  .barfill { height:100%; transition:width .05s linear; }
+  #hpWrap { bottom:52px; } #hpFill { background:#58c8ff; }
+  #enWrap { bottom:28px; } #enFill { background:#7dff8a; }
+  .bartext { position:absolute; right:6px; top:1px; font-size:11px; color:#e8f4ff;
+    text-shadow:0 0 3px #000; }
+  #enWarn { display:none; color:#ff5040; font-size:10px; position:absolute; left:286px; top:2px; }
+  #wpnPanel { position:absolute; right:18px; bottom:28px; text-align:right; font-size:12px; }
+  .wpn { padding:2px 8px; margin:2px 0; border:1px solid #33404e; color:#7a90a8; }
+  .wpn.active { border-color:#9fe8ff; color:#dff4ff; background:rgba(60,120,160,.25); }
+  .qb-chip { position:absolute; left:50%; bottom:120px; transform:translateX(-50%);
+    font-size:13px; letter-spacing:3px; color:#9fe8ff; }
+  .qb-chip.quickboost { color:#ffd040; }
+  #hitDir { position:absolute; left:50%; top:50%; }
+  .hitdir-tick { position:absolute; left:-2px; top:-6px; width:4px; height:12px;
+    background:#ff4030; opacity:0; }
+  #vignette { position:fixed; inset:0; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(255,30,20,.5) 100%); }
+
+  /* ---------- overlays ---------- */
+  .overlay { position:fixed; inset:0; display:none; flex-direction:column;
+    align-items:center; justify-content:center; background:rgba(8,10,14,.88); z-index:10; }
+  .overlay.visible { display:flex; }
+  .title-big { font-size:52px; letter-spacing:10px; color:#9fe8ff; text-shadow:0 0 18px #2af; }
+  .title-sub { font-size:16px; letter-spacing:6px; color:#ffd27a; margin:10px 0 40px; }
+  .menu-btn { display:block; width:340px; margin:8px; padding:14px; text-align:center;
+    background:#14202e; color:#cfe0ee; border:1px solid #3a5a78; font-size:16px;
+    letter-spacing:3px; cursor:pointer; font-family:inherit; }
+  .menu-btn:hover { background:#1e3048; border-color:#9fe8ff; }
+  .help { margin-top:28px; font-size:11px; color:#6a8098; line-height:1.9; text-align:center; }
+  #garage .cols { display:flex; gap:26px; margin:18px 0 26px; }
+  .gcol { min-width:230px; }
+  .gcol h3 { font-size:13px; color:#8fb4d8; letter-spacing:2px; margin-bottom:8px;
+    border-bottom:1px solid #2a3a48; padding-bottom:4px; }
+  .part { padding:9px 10px; margin:5px 0; border:1px solid #2a3a48; cursor:pointer;
+    font-size:12px; background:#101820; }
+  .part.sel { border-color:#ffd040; background:#1a2430; }
+  .part b { color:#dff4ff; display:block; }
+  .part span { color:#7a90a8; font-size:10px; }
+  #statsLine { font-size:12px; color:#9fe8ff; letter-spacing:1px; margin-bottom:14px; }
+  #resultTitle { font-size:44px; letter-spacing:12px; margin-bottom:8px; }
+  #resultTitle.clear { color:#7dff8a; } #resultTitle.fail { color:#ff5040; }
+  #resultSub { font-size:13px; color:#8fb4d8; margin-bottom:36px; letter-spacing:2px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="hud">
+  <div id="markers"></div>
+  <div class="lock-circle" id="lockCircle"></div>
+  <div class="reticle" id="reticle"></div>
+  <div id="hitDir"></div>
+  <div id="fcsState">FCS OFFLINE</div>
+  <div id="denyLine"></div>
+  <div id="msgLine"></div>
+  <div id="objText"></div>
+  <div id="sectorName"></div>
+  <div class="barwrap" id="hpWrap"><div class="barfill" id="hpFill"></div>
+    <div class="bartext" id="hpText">1000</div></div>
+  <div class="barwrap" id="enWrap"><div class="barfill" id="enFill"></div>
+    <div class="bartext" id="enText">120</div><div id="enWarn">LOW EN</div></div>
+  <div id="wpnPanel">
+    <div class="wpn" id="wpnMg">[1] MACHINE GUN <span id="ammoMg">300</span></div>
+    <div class="wpn" id="wpnBeam">[2] BEAM RIFLE EN8</div>
+    <div class="wpn" id="wpnMs">[3] HAND MISSILE <span id="ammoMs">12</span></div>
+  </div>
+  <div class="qb-chip" id="qbFlash"></div>
+</div>
+<div id="vignette"></div>
+
+<div class="overlay" id="title">
+  <div class="title-big">ARMORED KOALA 2</div>
+  <div class="title-sub">— DEMO · ESCAPE THE ABANDONED FACTORY —</div>
+  <button class="menu-btn" id="btnStart">SORTIE</button>
+  <div class="help">
+    WASD move · mouse aim · LMB fire · Q quick-boost · Shift glide · Space jump / hold to fly<br>
+    C brake · 1/2/3 weapons · Esc pause<br>
+    Destroy the six CONTROL turrets to open the final gate. The first one carries an FCS module.
+  </div>
+</div>
+
+<div class="overlay" id="garage">
+  <div class="title-sub" style="margin-bottom:4px">ASSEMBLY — 18 CONFIGURATIONS</div>
+  <div id="statsLine"></div>
+  <div class="cols">
+    <div class="gcol"><h3>FCS</h3><div id="colFcs"></div></div>
+    <div class="gcol"><h3>GENERATOR</h3><div id="colGen"></div></div>
+    <div class="gcol"><h3>LEGS</h3><div id="colLegs"></div></div>
+  </div>
+  <button class="menu-btn" id="btnDeploy">DEPLOY</button>
+</div>
+
+<div class="overlay" id="pause">
+  <div class="title-big" style="font-size:32px">PAUSED</div>
+  <button class="menu-btn" id="btnResume">RESUME</button>
+  <button class="menu-btn" id="btnRetry">RESTART MISSION</button>
+  <button class="menu-btn" id="btnQuit">RETURN TO GARAGE</button>
+</div>
+
+<div class="overlay" id="result">
+  <div id="resultTitle"></div>
+  <div id="resultSub"></div>
+  <button class="menu-btn" id="btnAgain">REDEPLOY</button>
+  <button class="menu-btn" id="btnGarage2">CHANGE ASSEMBLY</button>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

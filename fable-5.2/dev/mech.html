@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AK2 dev — mech model</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #20252b; }
+      canvas { display: block; width: 100vw; height: 100vh; }
+      #info {
+        position: fixed; left: 8px; top: 6px; color: #cfe9ee; white-space: pre;
+        font: 12px/1.35 ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Noto Sans JP', 'Yu Gothic UI', 'Meiryo', monospace;
+        text-shadow: 0 1px 2px #000; pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="info"></div>
+    <script type="module" src="./mech.ts"></script>
+  </body>
+</html>

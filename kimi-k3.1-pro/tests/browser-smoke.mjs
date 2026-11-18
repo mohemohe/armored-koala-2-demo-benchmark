@@ -1,0 +1,24 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs/promises';
+
+const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', e => errors.push(e.message));
+page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+await page.goto('http://127.0.0.1:5173/?seed=20260908', { waitUntil: 'networkidle' });
+await page.waitForFunction(() => window.__AK2__?.getSnapshot().state === 'garage');
+await fs.mkdir('artifacts', { recursive: true });
+await page.screenshot({ path: 'artifacts/garage.png' });
+console.log('garage', await page.evaluate(() => { const s = __AK2__.getSnapshot(); return { state:s.state, sectors:s.stage.sectorCount, enemies:s.enemies.length, guards:s.enemies.filter(e=>e.kind==='guard').length, turrets:s.enemies.filter(e=>e.kind==='turret').length, controls:s.enemies.filter(e=>e.isGateControl).map(e=>e.id) }; }));
+await page.locator('[data-key="legs"][data-value="quadruped"]').click();
+console.log('quadruped stats', await page.evaluate(() => __AK2__.getSnapshot().effectiveStats));
+await page.locator('[data-key="legs"][data-value="biped"]').click();
+await page.locator('#deploy').click();
+await page.waitForFunction(() => __AK2__.getSnapshot().state === 'playing', { timeout: 10000 });
+await page.waitForTimeout(500);
+await page.screenshot({ path: 'artifacts/playing.png' });
+console.log('playing', await page.evaluate(() => { const s=__AK2__.getSnapshot(); return {state:s.state,position:s.player.position,hp:s.player.hp,en:s.player.en,sector:s.stage.currentSectorId,lock:s.lock}; }));
+console.log('errors', errors);
+await browser.close();
+if (errors.length) process.exitCode = 1;

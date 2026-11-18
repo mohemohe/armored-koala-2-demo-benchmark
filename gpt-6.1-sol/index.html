@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101719" />
+    <meta name="description" content="ARMORED KOALA 2 — 廃工場から脱出する高速メカアクション。Three.js によるオリジナルゲームデモ。" />
+    <title>ARMORED KOALA 2 — AK2 DEMO</title>
+  </head>
+  <body>
+    <canvas id="game-canvas" aria-label="ARMORED KOALA 2 の 3D ゲーム画面"></canvas>
+
+    <main id="garage" class="garage screen">
+      <header class="garage-header">
+        <a class="brand" href="#" aria-label="ARMORED KOALA 2">
+          <span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>AK<span class="brand-number">2</span><small>ARMORED SYSTEMS</small></span>
+        </a>
+        <nav class="top-navigation" aria-label="格納庫メニュー">
+          <button id="garage-tab" class="nav-item active" type="button"><span>01</span> GARAGE</button>
+          <button id="mission-toggle" class="nav-item" type="button"><span>02</span> MISSION</button>
+          <button id="help-toggle" class="nav-item" type="button"><span>03</span> FIELD MANUAL <i>↗</i></button>
+        </nav>
+        <div class="system-status"><span class="status-light"></span> SYSTEM ONLINE <span class="status-code">// 04:17</span></div>
+      </header>
+
+      <section class="garage-intro" aria-labelledby="game-title">
+        <div class="eyebrow"><span class="orange-line"></span> TACTICAL MECH ACTION <span class="demo-tag">DEMO</span></div>
+        <h1 id="game-title">ARMORED<br />KOALA<span class="title-two">2</span><span class="title-period">.</span></h1>
+        <div class="title-subline"><span>重装甲。野生の本能。</span><span class="title-rule"></span><span>AK2 / 001</span></div>
+        <p class="intro-description">目覚めたのは、閉鎖された巨大工場。<br />機体を組み、隔壁を破り、出口を切り開け。</p>
+        <div class="mission-summary">
+          <span class="mission-kicker">OPERATION 01</span>
+          <h2>BREAK THE LOCKDOWN <span>↗</span></h2>
+          <p>6 基の制御砲台を破壊し、最終搬出ゲートから脱出。</p>
+          <div class="mission-numbers">
+            <div><strong>15</strong><span>SECTORS</span></div>
+            <div><strong>45</strong><span>HOSTILES</span></div>
+            <div><strong>06</strong><span>INTERLOCKS</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="mech-caption" aria-hidden="true">
+        <span class="caption-line"></span><span>AK-02 <b>KOALA</b><small>COMBAT UNIT / READY FOR DEPLOYMENT</small></span>
+      </div>
+      <div class="model-coordinate" aria-hidden="true"><span>HANGAR BAY / 07</span><span id="garage-leg-name">BIPED / 02</span><span>CHASSIS / READY</span></div>
+
+      <aside class="loadout-panel" aria-labelledby="loadout-title">
+        <div class="panel-heading"><h2 id="loadout-title">ASSEMBLY</h2><span class="panel-index">18 CONFIGS</span></div>
+        <div class="panel-subheading"><span>出撃前の機体構成</span><span class="tiny-square"></span></div>
+        <section class="part-section" aria-labelledby="fcs-label">
+          <div class="part-heading"><span class="part-number">01</span><h3 id="fcs-label">FLIGHT CONTROL SYSTEM</h3><span>FCS</span></div>
+          <div class="part-options three-options">
+            <button class="part-option" type="button" data-part="fcs" data-value="wide" aria-pressed="false"><span class="option-top">WIDE</span><span class="option-name">広範囲</span><span class="option-detail">広い捕捉 / 遅いロック</span><span class="option-spec">0.30D <i>·</i> 1.20s</span></button>
+            <button class="part-option selected" type="button" data-part="fcs" data-value="medium" aria-pressed="true"><span class="option-top">MEDIUM</span><span class="option-name">中範囲</span><span class="option-detail">捕捉と速度の均衡</span><span class="option-spec">0.20D <i>·</i> 0.80s</span></button>
+            <button class="part-option" type="button" data-part="fcs" data-value="narrow" aria-pressed="false"><span class="option-top">NARROW</span><span class="option-name">狭範囲</span><span class="option-detail">狭い捕捉 / 速いロック</span><span class="option-spec">0.10D <i>·</i> 0.40s</span></button>
+          </div>
+        </section>
+        <section class="part-section" aria-labelledby="generator-label">
+          <div class="part-heading"><span class="part-number">02</span><h3 id="generator-label">GENERATOR</h3><span>EN</span></div>
+          <div class="part-options three-options">
+            <button class="part-option" type="button" data-part="generator" data-value="capacity" aria-pressed="false"><span class="option-top">CAPACITY</span><span class="option-name">大容量</span><span class="option-detail">長い飛行 / 遅い回復</span><span class="option-spec">180 EN <i>·</i> +10/s</span></button>
+            <button class="part-option selected" type="button" data-part="generator" data-value="balanced" aria-pressed="true"><span class="option-top">BALANCED</span><span class="option-name">均衡</span><span class="option-detail">容量と回復の均衡</span><span class="option-spec">120 EN <i>·</i> +15/s</span></button>
+            <button class="part-option" type="button" data-part="generator" data-value="recovery" aria-pressed="false"><span class="option-top">RECOVERY</span><span class="option-name">高回復</span><span class="option-detail">速い回復 / 小さい容量</span><span class="option-spec">90 EN <i>·</i> +20/s</span></button>
+          </div>
+        </section>
+        <section class="part-section legs-section" aria-labelledby="legs-label">
+          <div class="part-heading"><span class="part-number">03</span><h3 id="legs-label">LEG UNIT</h3><span>CHASSIS</span></div>
+          <div class="part-options two-options">
+            <button class="part-option leg-option selected" type="button" data-part="legs" data-value="biped" aria-pressed="true"><svg viewBox="0 0 40 37" aria-hidden="true"><path d="M14 5h12v8H14zM16 14v9l-5 10H4m20-19v9l5 10h7M11 33v-3m18 3v-3" /></svg><span><span class="option-top">BIPED</span><span class="option-name">2 脚</span><span class="option-detail">高速移動 / 標準ロック</span></span></button>
+            <button class="part-option leg-option" type="button" data-part="legs" data-value="quadruped" aria-pressed="false"><svg viewBox="0 0 40 37" aria-hidden="true"><path d="M12 7h16v9H12zM12 12 5 22v10H1m14-16-3 9v8H8m20-21 7 10v10h4m-14-16 3 9v8h4" /></svg><span><span class="option-top">QUADRUPED</span><span class="option-name">4 脚</span><span class="option-detail">ロック ×1.5 / 速度 ×0.8</span></span></button>
+          </div>
+        </section>
+        <section class="effective-stats" aria-label="脚部補正後の機体性能">
+          <div class="stats-heading">EFFECTIVE PERFORMANCE <span>LIVE</span></div>
+          <dl>
+            <div><dt>最大 EN</dt><dd><span id="stat-en">120</span><small>EN</small></dd></div>
+            <div><dt>EN 回復率</dt><dd><span id="stat-regen">15.00</span><small>/s</small></dd></div>
+            <div><dt>ロック所要時間</dt><dd><span id="stat-lock">0.80</span><small>s</small></dd></div>
+            <div><dt>水平移動速度</dt><dd><span id="stat-speed">10.0</span><small>m/s</small></dd></div>
+          </dl>
+          <div class="stats-footnote"><span>GLIDE <b><span id="stats-glide">22.0</span> m/s</b></span><span>ARMOR <b>1000 HP</b></span></div>
+        </section>
+      </aside>
+
+      <div class="deployment-panel">
+        <button id="launch" class="launch-button" type="button"><span><small>ALL SYSTEMS READY</small>DEPLOY <b>出撃する</b></span><span class="launch-arrow">↗</span></button>
+        <div class="deployment-hint"><span class="status-light"></span> クリックでマウスを取得 <span>ESC で一時停止</span></div>
+      </div>
+      <footer class="garage-footer"><span>AK2-1.2-CANDIDATE <i> / </i> THREE.JS DEMO</span><span><b>INDUSTRIAL COMPLEX</b> <i>—</i> 2.4 KM ESCAPE ROUTE</span><span>NO SIGNAL. NO BACKUP.</span></footer>
+    </main>
+
+    <section id="hud" class="hud hidden" aria-label="戦闘ステータス">
+      <header class="hud-header">
+        <div class="hud-brand">AK<span>2</span><small>COMBAT LINK</small></div>
+        <div class="sector-display"><span id="sector-id">SECTOR 01</span><strong id="sector-name">搬入口</strong><small>INDUSTRIAL COMPLEX</small></div>
+        <div class="objective-display"><span>MISSION OBJECTIVE <b id="controls-count">0 / 6</b></span><strong id="objective-text">制御砲台を破壊し、隔壁を開放</strong></div>
+        <div class="mission-clock"><span>ELAPSED</span><strong id="mission-time">00:00</strong><small>ESC / PAUSE</small></div>
+      </header>
+      <div id="fcs-circle" class="fcs-circle"><span class="fcs-tick tick-top"></span><span class="fcs-tick tick-bottom"></span><span class="fcs-tick tick-left"></span><span class="fcs-tick tick-right"></span></div>
+      <div class="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
+      <div class="lock-readout"><span id="lock-status">FCS / SEARCHING</span><div class="lock-track"><i id="lock-progress"></i></div><small>AUTOMATIC LEAD + GRAVITY COMPENSATION</small></div>
+      <div id="target-marker" class="target-marker hidden"><i></i><i></i><i></i><i></i><span>TRACK</span></div>
+      <div id="aim-marker" class="aim-marker hidden"><i></i><span>AUTO AIM</span></div>
+      <div id="target-info" class="target-info"></div>
+      <div id="objective-marker" class="objective-marker hidden"><span>◇</span><small>NEXT INTERLOCK</small></div>
+      <div id="damage-direction" class="damage-direction hidden"></div>
+      <div id="event-message" class="event-message" role="status"></div>
+      <aside class="weapon-panel hud-panel">
+        <div class="hud-panel-label"><span>ARMAMENT</span><span>SELECT / 1 2 3</span></div>
+        <div class="weapon-main"><span class="weapon-symbol">⌁</span><div><small>ACTIVE WEAPON</small><strong id="weapon-name">MACHINE GUN</strong></div></div>
+        <div class="ammo-readout"><strong id="ammo">300</strong><span>REMAINING<br /><small id="weapon-cost">12 DMG / ROUND</small></span></div>
+        <div class="weapon-slots"><button type="button" class="weapon-slot active" data-weapon="machinegun"><span>1</span> MG</button><button type="button" class="weapon-slot" data-weapon="beam"><span>2</span> BEAM</button><button type="button" class="weapon-slot" data-weapon="missile"><span>3</span> MSL</button></div>
+      </aside>
+      <aside class="energy-panel hud-panel"><div class="hud-panel-label"><span>GENERATOR</span><span>EN RESERVE</span></div><div class="en-readout"><strong id="en-value">120</strong><span>/ <b id="en-max">120</b><small>ENERGY</small></span></div><div class="resource-track energy-track"><i id="en-fill"></i></div><div class="energy-labels"><span>GLIDE / 0 EN</span><span>FLIGHT / 20 EN·s⁻¹</span></div><div class="qb-readout"><span>QUICK BOOST <small>36 EN</small></span><b id="qb-status">READY</b></div></aside>
+      <div class="movement-readout"><span class="mode-icon">↗</span><div><small>MOVEMENT SYSTEM</small><strong id="movement-mode">WALK / GROUNDED</strong></div></div>
+      <div class="armor-panel"><div class="armor-label"><span>AP / ARMOR INTEGRITY</span><span><b id="hp-value">1000</b> <small>/ 1000</small></span></div><div class="resource-track armor-track"><i id="hp-fill"></i></div><div class="armor-footer"><span>AK-02 / KOALA</span><span>WASD MOVE <i>·</i> Q BOOST <i>·</i> SHIFT GLIDE <i>·</i> SPACE FLIGHT</span></div></div>
+      <div class="radar-panel"><div><span>LOCAL TOPOGRAPHY</span><span class="status-light"></span></div><canvas id="radar" width="160" height="120" aria-label="区画レーダー"></canvas></div>
+    </section>
+
+    <section id="mission-panel" class="modal-backdrop hidden" aria-labelledby="mission-title"><div class="modal-card mission-card"><button id="mission-close" class="modal-close" type="button" aria-label="閉じる">×</button><div class="eyebrow">OPERATION BRIEF / 001</div><h2 id="mission-title">BREAK THE<br />LOCKDOWN<span>.</span></h2><p class="modal-intro">ここは、15 区画がつながる閉鎖工場。<br />生きて最終搬出ゲートへ到達する。</p><ol class="mission-steps"><li><span>01</span><div><strong>制御砲台を探す</strong><p>オレンジ色の制御砲台と目標マーカーを追う。45 体の警備機が施設を防衛している。</p></div></li><li><span>02</span><div><strong>6 つの隔壁を開放する</strong><p>制御砲台を破壊するたび、次の攻略区間が開く。分岐と遮蔽物を利用し、6 か所の昇降区間では飛行する。</p></div></li><li><span>03</span><div><strong>工場から脱出する</strong><p>全 6 基を破壊すると最終搬出ゲートが開く。残りの敵の全滅は不要。ゲートの先へ進め。</p></div></li></ol><div class="mission-brief-footer">HP の回復・弾薬補給なし <span>武器と EN の使い分けが生存を決める。</span></div></div></section>
+
+    <section id="help-panel" class="modal-backdrop hidden" aria-labelledby="help-title"><div class="modal-card help-card"><button id="help-close" class="modal-close" type="button" aria-label="操作説明を閉じる">×</button><div class="eyebrow">PILOT REFERENCE / AK-02</div><h2 id="help-title">FIELD MANUAL<span>.</span></h2><p class="modal-intro">速く動く。敵を捉える。エネルギーを残す。</p><div class="controls-grid"><div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span><strong>移動</strong><small>カメラの水平方向を基準に移動</small></span></div><div><kbd class="wide-key">MOUSE</kbd><span><strong>視点・照準 / 左クリックで射撃</strong><small>長押しで武器の間隔に従い連射</small></span></div><div><kbd>Q</kbd><span><strong>単発クイックブースト / 36 EN</strong><small>一度押すと瞬間加速。QB 後は自動グライド。</small></span></div><div><kbd class="wide-key">SHIFT</kbd><span><strong>グライドの ON / OFF / 0 EN</strong><small>一度押して切替。キーを離しても移動を継続。</small></span></div><div><kbd class="wide-key">L CTRL</kbd><span><strong>ブレーキ</strong><small>グライドを解除して慣性を伴い停止。Shift でも解除。</small></span></div><div><kbd class="wide-key">SPACE</kbd><span><strong>ジャンプ / 長押しで飛行</strong><small>0.20 秒以上で飛行。上昇 8m/s、20 EN/秒。</small></span></div><div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><span><strong>マシンガン / ビーム / ミサイル</strong><small>ビームは 1 射 8 EN。ミサイルはロック必須。</small></span></div><div><kbd class="wide-key">ESC</kbd><span><strong>一時停止</strong><small>マウスの取得を解除。再開にはボタンをクリック。</small></span></div></div><div class="manual-callout"><span class="manual-callout-icon">⊕</span><div><strong>FCS に対象を保つだけで、自動補正。</strong><p>ロック完了後、偏差とマシンガンの重力落下を実際の射出方向へ自動補正します。中央照準を補正マーカーに手動で合わせる必要はありません。対象の現在位置は角型、補正照準は菱形マーカーです。</p></div></div><div class="manual-footer"><span>GLIDE ALWAYS COSTS <b>0 EN</b></span><span>接地中、最後の EN 消費から 0.75 秒後に回復。</span></div></div></section>
+
+    <section id="pause-screen" class="modal-backdrop hidden" aria-labelledby="pause-title"><div class="modal-card pause-card"><div class="eyebrow"><span class="status-light"></span> SIMULATION SUSPENDED</div><h2 id="pause-title">SYSTEM<br />PAUSED<span>.</span></h2><p class="modal-intro">機体と戦闘の時間は停止しています。</p><div class="modal-actions"><button id="resume" class="primary-button" type="button">RESUME <span>戦闘を再開 ↗</span></button><button id="pause-help" class="secondary-button" type="button">FIELD MANUAL <span>操作説明 ↗</span></button><button id="restart" class="secondary-button" type="button">REDEPLOY <span>同じ構成で再出撃 ↗</span></button><button id="garage-return" class="secondary-button" type="button">RETURN TO GARAGE <span>格納庫に戻る ↗</span></button></div><p class="pause-reminder"><b>Q</b> 単発 36 EN → 自動グライド <i>·</i> <b>SHIFT</b> グライド 0 EN<br /><b>左 CTRL</b> 停止 <i>·</i> <b>SPACE 長押し</b> 飛行 20 EN/秒</p></div></section>
+
+    <section id="result-screen" class="modal-backdrop hidden" aria-labelledby="result-title"><div class="modal-card result-card"><div class="eyebrow">OPERATION / COMPLETE</div><h2 id="result-title">MISSION<br />COMPLETE<span>.</span></h2><p id="result-detail" class="modal-intro">搬出ゲートからの脱出を確認しました。</p><div class="result-rule"></div><div class="modal-actions"><button id="retry" class="primary-button" type="button">REDEPLOY <span>同じ構成で再出撃 ↗</span></button><button id="return" class="secondary-button" type="button">RETURN TO GARAGE <span>格納庫に戻る ↗</span></button></div><div class="result-signoff">AK-02 / KOALA <span>END OF TRANSMISSION</span></div></div></section>
+
+    <div id="pointer-lock-error" class="pointer-lock-error hidden" role="alert">マウスを取得できませんでした。「出撃」または「再開」をもう一度クリックしてください。</div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

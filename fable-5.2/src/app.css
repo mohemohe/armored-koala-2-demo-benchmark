@@ -1,0 +1,161 @@
+/*
+ * ARMORED KOALA 2 DEMO — application shell (see src/app.ts).
+ *
+ * Layers inside the root element (bottom → top):
+ *   canvas.ak2-canvas   the WebGL view (game scene / hangar)
+ *   .ak2-layer          HUD layer   (.ak2-hud,   z-index 10, src/ui/hud.css)
+ *   .ak2-layer          UI layer    (.ak2-garage z-index 20, .ak2-menus z-index 30, src/ui/ui.css)
+ *   .ak2-toast          "音声 ON [M]" / "音声 OFF [M]" for a moment after the M key (z-index 35)
+ *   .ak2-shell-msg      loading indication / fatal messages (z-index 40)
+ * The root is its own stacking context, so these z-indices never interact with the page around it.
+ */
+.ak2-root {
+  overflow: hidden;
+  background: #0b0d10;
+  isolation: isolate;
+  /* the game owns every gesture inside its display area (no text selection / scrolling / touch panning) */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+.ak2-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  background: #0b0d10;
+}
+.ak2-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ───────────────────────── sound on / off toast (M key) ─────────────────────────
+ * Centred, just below the header line of the garage and between the two top HUD panels (4.7 em of the UI
+ * scale of src/ui/ui.css: 16 px at 1280×720), well above the lock circle; never takes pointer events.
+ * The state is in the words. --ak2-toast-shift is set by App.placeToast() while a HUD block (the gate banner
+ * and the event messages at the top centre, or a top panel in a narrow window) reaches into that place: the
+ * toast then sits just below the block. */
+.ak2-toast {
+  position: absolute;
+  left: 50%;
+  top: calc(4.7 * clamp(10px, min(1.25vw, 2.2222vh), 64px) + var(--ak2-toast-shift, 0px));
+  z-index: 35;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 0.35em 1em;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans JP', 'Noto Sans CJK JP', 'Yu Gothic UI', 'Meiryo', 'Hiragino Kaku Gothic ProN',
+    sans-serif;
+  font-size: clamp(11px, min(1.2vw, 2.1vh), 30px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: #e4f3f7;
+  background: rgba(6, 14, 19, 0.9);
+  border: 1px solid rgba(99, 230, 242, 0.55);
+  border-left-width: 0.3em;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s linear,
+    visibility 0s linear 0.25s;
+}
+.ak2-toast.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.08s linear;
+}
+
+/* ───────────────────────── loading indication / fatal message ───────────────────────── */
+.ak2-shell-msg {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #0b0d10;
+  color: #e4f3f7;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans JP', 'Noto Sans CJK JP', 'Yu Gothic UI', 'Meiryo', 'Hiragino Kaku Gothic ProN',
+    sans-serif;
+  text-align: center;
+}
+.ak2-shell-msg.is-off {
+  display: none;
+}
+.ak2-shell-msg .title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: #dcfcff;
+}
+.ak2-shell-msg .status {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: #a9c6ce;
+}
+.ak2-shell-msg .bar {
+  position: relative;
+  width: min(320px, 60vw);
+  height: 4px;
+  overflow: hidden;
+  background: rgba(99, 230, 242, 0.18);
+}
+.ak2-shell-msg .bar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  background: #63e6f2;
+  transform-origin: 0 50%;
+  transform: scaleX(0.04);
+  transition: transform 0.2s linear;
+}
+/* fatal: the game cannot run (no WebGL) or the 3D view was lost */
+.ak2-shell-msg.is-fatal {
+  background: rgba(11, 13, 16, 0.94);
+  user-select: text;
+  -webkit-user-select: text;
+}
+.ak2-shell-msg.is-fatal .title {
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: #ffb53a;
+}
+.ak2-shell-msg.is-fatal .status {
+  max-width: 46em;
+  font-size: 15px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: #e4f3f7;
+  white-space: pre-line;
+}
+.ak2-shell-msg.is-fatal .bar {
+  display: none;
+}
+.ak2-shell-msg .detail {
+  max-width: 60em;
+  font-size: 12px;
+  color: #86a2ab;
+  overflow-wrap: anywhere;
+}
+.ak2-shell-msg .detail:empty {
+  display: none;
+}

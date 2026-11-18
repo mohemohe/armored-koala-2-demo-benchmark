@@ -1,0 +1,22 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101211"><title>ARMORED KOALA 2 — Hangar Terminal</title><link rel="stylesheet" href="./styles.css">
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script></head><body>
+<header><div class="identity"><span class="emblem"><i></i><i></i><i></i></span><strong>AK2</strong><span class="split"></span><b>OPERATIONS TERMINAL</b></div><div class="terminal"><span class="led"></span> SYSTEM ONLINE <span class="split"></span> <span>TERMINAL / 007</span></div></header>
+<main id="garage">
+<section id="viewer"><canvas id="bay" aria-label="コアラ型戦闘ロボットの3Dプレビュー"></canvas><div class="vignette"></div>
+<div class="poster"><div class="eyebrow"><i></i> TACTICAL MECH ACTION</div><h1>ARMORED<br>KOALA <em>2</em></h1><div class="edition"><b>DEMO</b><span>廃工場脱出作戦</span></div></div>
+<div class="camid"><span class="rec"></span> LIVE <i>/</i> CAM 07</div>
+<div class="viewfoot"><div><small>ACTIVE UNIT</small><strong>AK–02 <i>//</i> KOALA</strong></div><button id="rotate" title="機体の回転を切り替え"><span class="icon" data-icon="rotate"></span> <span id="rotateLabel">ROTATE</span></button></div>
+<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+</section>
+<aside id="configuration"><div class="sectiontitle"><div class="eyebrow"><i></i> HANGAR / 07</div><h2>機体構成<span>LOADOUT</span></h2></div>
+<div id="components"></div><section class="performance"><div class="subhead"><b>機体性能</b><span>UNIT SPECS</span></div><div id="stats"></div></section>
+<button id="deploy" class="primary"><span class="icon" data-icon="launch"></span><strong>出撃する</strong><small>DEPLOY UNIT</small><b class="arrow">→</b></button>
+</aside>
+<section id="manual"><div class="manual-head"><span class="icon" data-icon="key"></span><b>操作ガイド</b><small>OPERATOR GUIDE</small><button id="guide">詳細を表示 <span>↗</span></button></div><div class="controls"></div></section>
+</main>
+<footer><span><i></i> AK INDUSTRIES <b>/</b> SYSTEMS DIVISION</span><span>AK2–OS <b>//</b> BUILD 1.2</span></footer>
+<canvas id="field" hidden></canvas>
+<div id="hud" hidden><div class="mission"><small>SECTOR <b id="sectorId"></b></small><h3 id="sectorName"></h3><div id="objective"></div><div id="gateNotice"></div></div><div class="time" id="gameTime"></div><div id="circle"><i></i></div><div id="reticle">+</div><div id="targetMark"></div><div id="solutionMark"></div><div id="waypoint"></div><div id="lockstate"></div><div id="feedback"></div><div id="damage"></div><div class="telemetry left" id="weaponInfo"></div><div class="telemetry right" id="energy"></div><div class="health" id="health"></div><div id="motion"></div></div>
+<div id="overlay" hidden><section id="dialog" role="dialog" aria-modal="true"></section></div>
+<script type="module" src="./src/main.js"></script>
+</body></html>

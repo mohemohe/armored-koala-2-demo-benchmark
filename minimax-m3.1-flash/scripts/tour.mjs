@@ -1,0 +1,18 @@
+import { chromium } from 'playwright';
+const base = process.argv[2] ?? 'http://127.0.0.1:4173/';
+const out = process.argv[3] ?? '/tmp/opencode';
+const browser = await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
+const page = await browser.newPage({viewport:{width:1280,height:720}});
+page.on('pageerror', e=>console.log('[err]',e.message));
+await page.goto(base, {waitUntil:'networkidle'});
+await page.waitForTimeout(1200);
+await page.click('#btn-start');
+await page.waitForTimeout(1500);
+await page.screenshot({path:`${out}/tour-intake.png`});
+await page.keyboard.down('KeyD');
+await page.waitForTimeout(12000);
+await page.keyboard.up('KeyD');
+await page.waitForTimeout(1200);
+await page.screenshot({path:`${out}/tour-yard.png`});
+console.log(JSON.stringify(await page.evaluate(()=>{const s=window.__AK2__.getSnapshot();return {pos:s.player.position.map(v=>+v.toFixed(1)),sector:s.stage.currentSectorId,visited:s.stage.visitedSectorIds};})));
+await browser.close();

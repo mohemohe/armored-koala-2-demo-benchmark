@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARMORED KOALA 2 DEMO</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="hud-top">
+        <div id="sector"></div>
+        <div id="objective"></div>
+        <div class="row"><span id="controls"></span><span id="barriers"></span><span id="elapsed"></span></div>
+      </div>
+      <div id="fcs-circle"></div>
+      <div id="fcs-label"></div>
+      <div id="crosshair"><i></i><b></b></div>
+      <div id="lock-marker">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <rect class="br" x="4" y="4" width="56" height="56" />
+          <circle cx="32" cy="32" r="26" class="bg" />
+          <circle id="lock-ring" cx="32" cy="32" r="26" class="fg" transform="rotate(-90 32 32)" />
+          <path class="dia" d="M32 10 L54 32 L32 54 L10 32 Z" />
+        </svg>
+        <span id="lock-text"></span>
+      </div>
+      <div id="markers"></div>
+      <div id="dmg-layer"></div>
+      <div id="vignette"></div>
+      <div id="hud-left" class="panel">
+        <div class="ptitle">WEAPON</div>
+        <div id="weapons"></div>
+        <div id="weapon-msg"></div>
+      </div>
+      <div id="hud-right" class="panel">
+        <div class="ptitle">ENERGY</div>
+        <div id="en-text"></div>
+        <div class="bar en"><div id="en-bar"></div><i id="en-mark-qb" title="QB 36"></i><i id="en-mark-beam" title="BEAM 8"></i></div>
+        <div class="barlegend"><span>▲8 ビーム</span><span>▲36 QB</span></div>
+        <div id="en-state"></div>
+        <div id="en-warn">⚠ EN不足</div>
+        <div class="ptitle mt">MOBILITY</div>
+        <div id="move-h"></div>
+        <div id="move-v"></div>
+        <div id="move-glide"></div>
+        <div id="qb-state"></div>
+        <div class="bar qb"><div id="qb-bar"></div></div>
+      </div>
+      <div id="hud-bottom" class="panel">
+        <div id="hp-text"></div>
+        <div class="bar hp"><div id="hp-bar"></div></div>
+      </div>
+      <div id="toast"></div>
+    </div>
+
+    <!-- 格納庫 -->
+    <div id="garage" class="overlay">
+      <div class="g-head">
+        <div class="logo">ARMORED KOALA <span>2</span> <small>DEMO</small></div>
+        <div class="sub">格納庫 ／ HANGAR — 機体構成（出撃後は変更不可）</div>
+      </div>
+      <div class="g-body">
+        <div class="g-col left">
+          <h3>FCS（Flight Control System）</h3>
+          <div id="parts-fcs" class="parts"></div>
+          <h3>ジェネレーター</h3>
+          <div id="parts-gen" class="parts"></div>
+          <h3>脚部</h3>
+          <div id="parts-legs" class="parts"></div>
+        </div>
+        <div class="g-col center"></div>
+        <div class="g-col right">
+          <h3>機体性能（脚部補正適用後）</h3>
+          <div id="stats"></div>
+        </div>
+      </div>
+      <div class="g-foot">
+        <details class="help">
+          <summary>操作方法（クリックで開閉）</summary>
+          <div id="controls-garage"></div>
+        </details>
+        <div class="launch">
+          <div id="seed-label"></div>
+          <button id="btn-sortie" class="big">出撃（クリックで操作開始）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一時停止 -->
+    <div id="pause" class="overlay hidden">
+      <div class="box">
+        <h2>PAUSE — 一時停止中</h2>
+        <p class="note">一時停止中は敵・弾・EN・ロック・待ち時間・経過時間は進みません。</p>
+        <div class="btns">
+          <button id="btn-resume" class="big">再開（クリックで操作再開）</button>
+          <button id="btn-restart">同じ構成で再出撃</button>
+          <button id="btn-garage">格納庫へ戻る</button>
+        </div>
+        <div id="controls-pause"></div>
+      </div>
+    </div>
+
+    <!-- 結果 -->
+    <div id="result" class="overlay hidden">
+      <div class="box">
+        <h2 id="result-title"></h2>
+        <div id="result-body"></div>
+        <div class="btns">
+          <button id="btn-retry" class="big">同じ構成で再出撃</button>
+          <button id="btn-result-garage">格納庫へ戻る</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ポインターロック失敗 -->
+    <div id="lockfail" class="overlay hidden">
+      <div class="box small">
+        <h2>マウス操作を開始できませんでした</h2>
+        <p id="lockfail-msg"></p>
+        <p class="note">このゲームはマウスポインターのロック（Pointer Lock）が必要です。ロックが取得できるまで戦闘は進行しません。<br />
+          Esc で解除した直後はブラウザーが再取得を拒否することがあります。1〜2秒待ってから再試行してください。</p>
+        <div class="btns">
+          <button id="btn-lock-retry" class="big">再試行</button>
+          <button id="btn-lock-cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pending">ポインターロックを取得しています…</div>
+    <div id="loading" class="overlay">
+      <div class="box small"><h2>ARMORED KOALA 2</h2><p>廃工場を構築中…</p></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,200 @@
+[
+  {
+    "fcs": "wide",
+    "generator": "capacity",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "1.20",
+      "maxEn": "180",
+      "regenPerSecond": "10"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "capacity",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.80",
+      "maxEn": "180",
+      "regenPerSecond": "7.50"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "balanced",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "1.20",
+      "maxEn": "120",
+      "regenPerSecond": "15"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "balanced",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.80",
+      "maxEn": "120",
+      "regenPerSecond": "11.25"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "recovery",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "1.20",
+      "maxEn": "90",
+      "regenPerSecond": "20"
+    }
+  },
+  {
+    "fcs": "wide",
+    "generator": "recovery",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.80",
+      "maxEn": "90",
+      "regenPerSecond": "15"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "capacity",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "0.80",
+      "maxEn": "180",
+      "regenPerSecond": "10"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "capacity",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.53",
+      "maxEn": "180",
+      "regenPerSecond": "7.50"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "balanced",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "0.80",
+      "maxEn": "120",
+      "regenPerSecond": "15"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "balanced",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.53",
+      "maxEn": "120",
+      "regenPerSecond": "11.25"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "recovery",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "0.80",
+      "maxEn": "90",
+      "regenPerSecond": "20"
+    }
+  },
+  {
+    "fcs": "medium",
+    "generator": "recovery",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.53",
+      "maxEn": "90",
+      "regenPerSecond": "15"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "capacity",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "0.40",
+      "maxEn": "180",
+      "regenPerSecond": "10"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "capacity",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.27",
+      "maxEn": "180",
+      "regenPerSecond": "7.50"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "balanced",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "0.40",
+      "maxEn": "120",
+      "regenPerSecond": "15"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "balanced",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.27",
+      "maxEn": "120",
+      "regenPerSecond": "11.25"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "recovery",
+    "legs": "biped",
+    "displayed": {
+      "glideSpeed": "22",
+      "lockSeconds": "0.40",
+      "maxEn": "90",
+      "regenPerSecond": "20"
+    }
+  },
+  {
+    "fcs": "narrow",
+    "generator": "recovery",
+    "legs": "quadruped",
+    "displayed": {
+      "glideSpeed": "17.6",
+      "lockSeconds": "0.27",
+      "maxEn": "90",
+      "regenPerSecond": "15"
+    }
+  }
+]

@@ -1,0 +1,1631 @@
+/*
+ * ARMORED KOALA 2 DEMO — in-game HUD (HTML/CSS overlay, see src/ui/hud.ts).
+ *
+ * Everything is sized in `em`; Hud.resize() sets the root font-size (16 px at 1280×720, scaled with
+ * the display area), so the same rules work from 1280×720 up to 4K. No external fonts or images.
+ * State differences are never colour-only: every state also changes a shape and/or a text.
+ */
+.ak2-hud {
+  --hud-line: #63e6f2;
+  --hud-line-dim: rgba(99, 230, 242, 0.42);
+  --hud-bright: #d6fcff;
+  --hud-text: #e8fbff;
+  --hud-dim: #9fc6ce;
+  --hud-amber: #ffb53a;
+  --hud-red: #ff5046;
+  --hud-ok: #86f7c4;
+  --hud-aim: #fff1a6;
+  --hud-bg: rgba(5, 14, 18, 0.66);
+  --hud-bg2: rgba(4, 10, 14, 0.5);
+  --hud-outline: 0 0 0.14em #000, 0 0 0.3em rgba(0, 0, 0, 0.9), 0.06em 0.06em 0 rgba(0, 0, 0, 0.85),
+    -0.06em -0.06em 0 rgba(0, 0, 0, 0.85), 0.06em -0.06em 0 rgba(0, 0, 0, 0.85), -0.06em 0.06em 0 rgba(0, 0, 0, 0.85);
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  contain: strict;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans JP', 'Noto Sans CJK JP', 'Yu Gothic UI', 'Meiryo', 'Hiragino Kaku Gothic ProN',
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  color: var(--hud-text);
+  text-shadow: var(--hud-outline);
+  z-index: 10;
+}
+.ak2-hud.is-hidden {
+  display: none;
+}
+.ak2-hud *,
+.ak2-hud *::before,
+.ak2-hud *::after {
+  box-sizing: border-box;
+}
+.ak2-hud .is-off {
+  display: none !important;
+}
+
+/* ───────────────────────── low-HP vignette ───────────────────────── */
+.hud-vignette {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 40, 30, 0) 58%, rgba(255, 40, 30, 0.2) 82%, rgba(190, 10, 6, 0.46) 100%);
+  transition: opacity 0.35s linear;
+}
+.ak2-hud.low-hp .hud-vignette {
+  opacity: 1;
+  animation: hud-vig 1.6s ease-in-out infinite;
+}
+@keyframes hud-vig {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ───────────────────────── centre: lock circle, damage wedges (.hud-svg, below the world markers) and
+   reticle + hit ticks (.hud-svg-top, a second layer above the world markers) ───────────────────────── */
+.hud-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hud-svg circle,
+.hud-svg path,
+.hud-svg line {
+  fill: none;
+  vector-effect: none;
+}
+.hud-lock-ol {
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.26em;
+}
+.hud-lock-ring {
+  stroke: var(--hud-line);
+  stroke-width: 0.1em;
+  opacity: 0.9;
+}
+.hud-lock-outer,
+.hud-lock-notch,
+.hud-lock-prog,
+.hud-lock-prog-ol {
+  display: none;
+}
+.hud-lock-card {
+  stroke: var(--hud-line);
+  stroke-width: 0.1em;
+  opacity: 0.75;
+}
+/* none: thin dashed circle */
+.ak2-hud[data-lock='none'] .hud-lock-ring {
+  stroke-width: 0.075em;
+  stroke-dasharray: 0.55em 0.5em;
+  opacity: 0.8;
+}
+.ak2-hud[data-lock='none'] .hud-lock-ol {
+  stroke-width: 0.2em;
+  stroke-dasharray: 0.55em 0.5em;
+}
+/* acquiring: thin solid circle + thick progress arc */
+.ak2-hud[data-lock='acquiring'] .hud-lock-ring {
+  stroke: var(--hud-line);
+  opacity: 0.55;
+}
+.ak2-hud[data-lock='acquiring'] .hud-lock-prog,
+.ak2-hud[data-lock='acquiring'] .hud-lock-prog-ol {
+  display: inline;
+}
+.hud-lock-prog {
+  stroke: var(--hud-amber);
+  stroke-width: 0.32em;
+  stroke-linecap: butt;
+}
+.hud-lock-prog-ol {
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.5em;
+}
+/* locked: bright solid double ring + inward notches */
+.ak2-hud[data-lock='locked'] .hud-lock-ring {
+  stroke: var(--hud-bright);
+  stroke-width: 0.2em;
+  opacity: 1;
+}
+.ak2-hud[data-lock='locked'] .hud-lock-ol {
+  stroke-width: 0.38em;
+}
+.ak2-hud[data-lock='locked'] .hud-lock-outer {
+  display: inline;
+  stroke: var(--hud-bright);
+  stroke-width: 0.085em;
+}
+.ak2-hud[data-lock='locked'] .hud-lock-notch {
+  display: inline;
+  fill: var(--hud-bright);
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 0.05em;
+}
+.ak2-hud[data-lock='locked'] .hud-lock-card {
+  stroke: var(--hud-bright);
+  opacity: 1;
+}
+
+/* centre reticle (drawn in base px, scaled by the group transform) */
+.hud-ret-ol {
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 3.4px;
+  stroke-linecap: round;
+}
+.hud-ret {
+  stroke: var(--hud-bright);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+}
+.hud-svg .hud-ret-dot {
+  fill: var(--hud-bright);
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 0.9px;
+}
+.ak2-hud[data-lock='locked'] .hud-ret,
+.ak2-hud[data-lock='locked'] .hud-ret-ol {
+  opacity: 0.6;
+}
+/* hit confirm (small X around the reticle) */
+.hud-hit {
+  stroke: #fff;
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+.hud-hit-ol {
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+.hud-hit-g.kill .hud-hit {
+  stroke: var(--hud-amber);
+  stroke-width: 2.6px;
+}
+
+/* damage direction wedges */
+.hud-svg .hud-dmg {
+  fill: var(--hud-red);
+  stroke: rgba(40, 0, 0, 0.85);
+  stroke-width: 0.07em;
+  stroke-linejoin: round;
+}
+.hud-svg .hud-dmg.heavy {
+  fill: #ff2a4a;
+}
+
+/* lock-state label under the circle */
+.hud-locklabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.12em 0.7em 0.14em;
+  color: var(--hud-dim);
+  border: 1px dashed var(--hud-line-dim);
+  background: var(--hud-bg2);
+  will-change: transform;
+}
+.hud-locklabel .pct {
+  display: inline-block;
+  min-width: 3.1em;
+  text-align: right;
+}
+.ak2-hud[data-lock='acquiring'] .hud-locklabel {
+  color: var(--hud-amber);
+  border: 1px solid var(--hud-amber);
+  background: rgba(30, 18, 0, 0.62);
+}
+.ak2-hud[data-lock='locked'] .hud-locklabel {
+  color: #031317;
+  text-shadow: none;
+  border: 1px solid #fff;
+  background: var(--hud-bright);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 0.6em rgba(120, 240, 255, 0.55);
+}
+.hud-locklabel.reject {
+  color: #fff !important;
+  text-shadow: var(--hud-outline) !important;
+  border: 1px solid var(--hud-red) !important;
+  background: rgba(120, 10, 6, 0.82) !important;
+  box-shadow: none !important;
+  animation: hud-blink 0.24s steps(2, jump-none) infinite;
+}
+.hud-killtag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0 0.4em;
+  color: var(--hud-amber);
+  /* painted above the world markers (DOM order): a chevron or a target tag behind it must not show through */
+  background: rgba(8, 6, 0, 0.6);
+  will-change: transform;
+}
+
+/* ───────────────────────── world markers ───────────────────────── */
+.hud-markers {
+  position: absolute;
+  inset: 0;
+}
+.hud-mk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  contain: layout style;
+  will-change: transform;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
+}
+.hud-mk svg {
+  position: absolute;
+  overflow: visible;
+}
+.hud-mk .on,
+.hud-mk .edge {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.hud-mk.is-edge .on {
+  display: none;
+}
+.hud-mk:not(.is-edge) .edge {
+  display: none;
+}
+.hud-mk-arrow {
+  position: absolute;
+  left: -1em;
+  top: -1em;
+  width: 2em;
+  height: 2em;
+}
+.hud-mk-arrow svg {
+  left: 0;
+  top: 0;
+  width: 2em;
+  height: 2em;
+}
+.hud-mk-elabel .x {
+  font-weight: 400;
+  color: var(--hud-aim);
+}
+.hud-mk-elabel .x.nosol {
+  color: #ffb0a8;
+}
+.hud-mk-elabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.72em;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  padding: 0.1em 0.4em;
+  background: var(--hud-bg);
+  border: 1px solid currentColor;
+}
+
+/* lock target: corner brackets */
+.hud-mk-target {
+  color: var(--hud-line);
+}
+.hud-tbox {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3em;
+  height: 3em;
+  transform: translate(-50%, -50%);
+}
+.hud-tbox i {
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  min-width: 0.4em;
+  min-height: 0.4em;
+  border: 0 solid currentColor;
+}
+.hud-tbox i:nth-child(1) {
+  left: 0;
+  top: 0;
+  border-left-width: 0.13em;
+  border-top-width: 0.13em;
+}
+.hud-tbox i:nth-child(2) {
+  right: 0;
+  top: 0;
+  border-right-width: 0.13em;
+  border-top-width: 0.13em;
+}
+.hud-tbox i:nth-child(3) {
+  left: 0;
+  bottom: 0;
+  border-left-width: 0.13em;
+  border-bottom-width: 0.13em;
+}
+.hud-tbox i:nth-child(4) {
+  right: 0;
+  bottom: 0;
+  border-right-width: 0.13em;
+  border-bottom-width: 0.13em;
+}
+.hud-ttag {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 0.3em;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.72em;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+}
+.hud-ttag .id {
+  color: #fff;
+}
+.hud-ttag .kind {
+  margin-left: 0.4em;
+  font-weight: 400;
+  opacity: 0.92;
+}
+.hud-ttag .dist {
+  margin-left: 0.5em;
+}
+.hud-thp {
+  position: relative;
+  height: 0.3em;
+  min-width: 5.5em;
+  margin: 0.2em auto 0;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+.hud-thp i {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: 0 50%;
+}
+.hud-mk-target.acq {
+  color: var(--hud-amber);
+}
+.hud-mk-target.acq .hud-tbox i {
+  border-style: dashed;
+}
+.hud-mk-target.lck {
+  color: var(--hud-bright);
+}
+.hud-mk-target.lck .hud-tbox i {
+  border-left-width: 0.2em;
+  border-right-width: 0.2em;
+  border-top-width: 0.2em;
+  border-bottom-width: 0.2em;
+}
+.hud-tbox i:nth-child(1),
+.hud-tbox i:nth-child(3) {
+  border-right-width: 0 !important;
+}
+.hud-tbox i:nth-child(2),
+.hud-tbox i:nth-child(4) {
+  border-left-width: 0 !important;
+}
+.hud-tbox i:nth-child(1),
+.hud-tbox i:nth-child(2) {
+  border-bottom-width: 0 !important;
+}
+.hud-tbox i:nth-child(3),
+.hud-tbox i:nth-child(4) {
+  border-top-width: 0 !important;
+}
+
+/* corrected-aim marker: diamond + centre dot (solved) / crossed-out dashed diamond (no solution) */
+.hud-mk-aim {
+  color: var(--hud-aim);
+}
+.hud-mk-aim svg.dia {
+  left: -1.05em;
+  top: -1.05em;
+  width: 2.1em;
+  height: 2.1em;
+}
+.hud-mk-aim .dia path,
+.hud-mk-aim .dia circle,
+.hud-mk-aim .dia line {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+.hud-mk-aim .dia .dot {
+  fill: currentColor;
+  stroke: none;
+}
+.hud-mk-aim .dia .x {
+  display: none;
+}
+.hud-atag {
+  position: absolute;
+  left: 0;
+  bottom: 1.75em;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.05em;
+  padding: 0.08em 0.45em;
+  border: 1px solid currentColor;
+  background: var(--hud-bg);
+}
+.hud-atag .sub {
+  margin-left: 0.5em;
+  font-weight: 400;
+}
+.hud-mk-aim.nosol {
+  color: var(--hud-red);
+}
+.hud-mk-aim.nosol .dia .x {
+  display: inline;
+  stroke-width: 2.4;
+}
+.hud-mk-aim.nosol .dia .dot {
+  display: none;
+}
+.hud-mk-aim.nosol .dia .d {
+  stroke-dasharray: 4 3;
+}
+.hud-mk-aim.nosol .hud-atag {
+  color: #ffe1dd;
+  border: 1px dashed var(--hud-red);
+  background: rgba(96, 8, 5, 0.8);
+}
+.hud-mk-aim.flip .hud-atag {
+  bottom: auto;
+  top: 1.75em;
+}
+.hud-leadline {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 0.09em;
+  min-height: 1px;
+  margin-top: -0.045em;
+  transform-origin: 0 50%;
+  background: var(--hud-aim);
+  /* y-offset shadows only: the element is stretched with scaleX(), a spread would be stretched too */
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(0, 0, 0, 0.4);
+  opacity: 0.85;
+  will-change: transform;
+}
+.hud-leadline.nosol {
+  background: var(--hud-red);
+}
+
+/* objective waypoint: inverted triangle pin */
+.hud-mk-obj {
+  color: var(--hud-amber);
+}
+.hud-mk-obj svg.pin {
+  left: -0.8em;
+  top: -1.75em;
+  width: 1.6em;
+  height: 1.75em;
+}
+.hud-mk-obj .pin path {
+  fill: rgba(40, 24, 0, 0.55);
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.hud-mk-obj .pin circle {
+  fill: currentColor;
+  stroke: none;
+}
+.hud-otag {
+  position: absolute;
+  left: 0;
+  bottom: 1.95em;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.05em;
+}
+.hud-otag .d {
+  color: #fff;
+  margin-left: 0.45em;
+}
+/* the tag would lie on the lock-state label under the circle: only the pin remains (Hud.updateObjective) */
+.hud-mk-obj.no-tag .hud-otag {
+  display: none;
+}
+.hud-mk-obj.exit {
+  color: var(--hud-ok);
+}
+
+/* route guidance: OPEN double chevron (down = go there, up = fly up, down + ground bar = drop), small text tag.
+   Drawn under every other marker; Hud.updateRoute() fades it inside the lock circle and close to the point. */
+.hud-mk-route {
+  color: #cdbbff;
+  transition: opacity 0.12s linear;
+}
+.hud-mk-route svg.rt {
+  /* the lower tip of the down chevrons (y = 5 of -16 … 12) sits on the anchor point */
+  left: -0.75em;
+  top: -1.3125em;
+  width: 1.5em;
+  height: 1.75em;
+}
+.hud-mk-route .rt path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hud-mk-route .rt path.ol {
+  stroke: rgba(0, 0, 0, 0.72);
+  stroke-width: 5.2;
+}
+.hud-mk-route .rt .up,
+.hud-mk-route .rt .bar,
+.hud-mk-route.climb .rt .dn {
+  display: none;
+}
+.hud-mk-route.climb .rt .up,
+.hud-mk-route.drop .rt .bar {
+  display: inline;
+}
+.hud-rtag {
+  position: absolute;
+  left: 0;
+  bottom: 1.55em;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+}
+.hud-mk-route.flip .hud-rtag {
+  bottom: auto;
+  top: 1.1em;
+}
+/* near a side edge the tag is aligned to its inner side so that no line leaves the screen */
+.hud-mk-route.tag-r .hud-rtag {
+  left: auto;
+  right: -1.2em;
+  transform: none;
+  text-align: right;
+}
+.hud-mk-route.tag-l .hud-rtag {
+  left: -1.2em;
+  transform: none;
+  text-align: left;
+}
+.hud-rtag .d,
+.hud-mk-route .hud-mk-elabel .d {
+  color: #fff;
+}
+.hud-rtag .s {
+  font-size: 0.95em;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--hud-text);
+}
+.hud-rtag .b,
+.hud-mk-route .hud-mk-elabel .rb {
+  font-size: 0.92em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--hud-amber);
+}
+.hud-rtag .b {
+  font-size: 0.95em;
+  margin-top: 0.15em;
+  padding: 0.05em 0.45em;
+  background: var(--hud-bg);
+  border: 1px dashed var(--hud-amber);
+}
+/* dead ahead (the tag would lie across the centre reticle on either side): only the chevrons remain */
+.hud-mk-route.no-tag .hud-rtag {
+  display: none;
+}
+/* inside the lock circle only the chevrons and the first line remain */
+.hud-mk-route.in-lock .hud-rtag .s,
+.hud-mk-route.in-lock .hud-rtag .b {
+  display: none;
+}
+
+/* enemy fire telegraph */
+.hud-mk-tele {
+  color: #ff8a3c;
+}
+.hud-mk-tele.turret {
+  color: #ff4f86;
+}
+.hud-tring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3em;
+  height: 3em;
+  transform: translate(-50%, -50%);
+  border: 0.2em solid currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 0.5em currentColor, inset 0 0 0.4em currentColor;
+  animation: hud-flash 0.14s steps(2, jump-none) infinite;
+}
+.hud-mk-tele .hud-mk-arrow {
+  left: -1.3em;
+  top: -1.3em;
+  width: 2.6em;
+  height: 2.6em;
+}
+.hud-mk-tele .hud-mk-arrow svg {
+  width: 2.6em;
+  height: 2.6em;
+}
+.hud-tbang {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 1.5em;
+  height: 1.35em;
+  margin-left: -0.75em;
+  margin-bottom: 0.15em;
+}
+.hud-tbang svg,
+.hud-mk-tele .edge .bang svg {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.hud-mk-tele svg .tri {
+  fill: currentColor;
+  stroke: #1a0500;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.hud-mk-tele svg .ex {
+  fill: #1a0500;
+  stroke: none;
+}
+.hud-mk-tele .edge .bang {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.5em;
+  height: 1.35em;
+}
+.hud-mk-tele .hud-mk-arrow {
+  animation: hud-flash 0.14s steps(2, jump-none) infinite;
+}
+.hud-mk-tele.tail .hud-tring,
+.hud-mk-tele.tail .hud-mk-arrow {
+  animation: none;
+}
+.hud-mk-tele.tail {
+  opacity: 0.45;
+}
+@keyframes hud-flash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+@keyframes hud-blink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+/* ───────────────────────── panels (shared) ───────────────────────── */
+.hud-panel {
+  position: absolute;
+  contain: layout style;
+  padding: 0.5em 0.75em 0.55em;
+  background: linear-gradient(180deg, rgba(8, 22, 28, 0.74), rgba(4, 11, 15, 0.6));
+  border: 1px solid rgba(99, 230, 242, 0.26);
+}
+.hud-panel::before,
+.hud-panel::after {
+  content: '';
+  position: absolute;
+  width: 0.7em;
+  height: 0.7em;
+  border: 0 solid var(--hud-line);
+}
+.hud-panel::before {
+  left: -1px;
+  top: -1px;
+  border-left-width: 2px;
+  border-top-width: 2px;
+}
+.hud-panel::after {
+  right: -1px;
+  bottom: -1px;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
+}
+.hud-cap {
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--hud-line);
+  white-space: nowrap;
+}
+.hud-cap b {
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--hud-dim);
+  margin-left: 0.6em;
+}
+
+/* ───────────────────────── top-left: sector + objective ───────────────────────── */
+.hud-top-left {
+  left: 0.85em;
+  top: 0.8em;
+  max-width: min(27em, 46%);
+}
+.hud-sector {
+  margin-top: 0.1em;
+  font-size: 1.12em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.hud-sector .en {
+  margin-left: 0.6em;
+  font-size: 0.6em;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--hud-dim);
+  text-transform: uppercase;
+}
+/* two identical one-shot animations: switching between them restarts the pulse without a forced reflow */
+.hud-sector.pulse-a {
+  animation: hud-pulse-a 0.9s ease-out 1;
+}
+.hud-sector.pulse-b {
+  animation: hud-pulse-b 0.9s ease-out 1;
+}
+@keyframes hud-pulse-a {
+  0% {
+    color: #fff;
+    text-shadow: 0 0 0.6em var(--hud-line), var(--hud-outline);
+  }
+  100% {
+    color: var(--hud-text);
+  }
+}
+@keyframes hud-pulse-b {
+  0% {
+    color: #fff;
+    text-shadow: 0 0 0.6em var(--hud-line), var(--hud-outline);
+  }
+  100% {
+    color: var(--hud-text);
+  }
+}
+.hud-objective {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  margin-top: 0.35em;
+  padding-top: 0.35em;
+  border-top: 1px solid rgba(99, 230, 242, 0.22);
+  font-size: 0.8em;
+  line-height: 1.3;
+}
+.hud-objective .k {
+  flex: none;
+  padding: 0 0.4em;
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #1c1000;
+  text-shadow: none;
+  background: var(--hud-amber);
+}
+.hud-objective .t {
+  color: #fff3d6;
+  /* break at spaces / punctuation only and balance the lines (no single orphan character) */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.hud-objective .d {
+  flex: none;
+  margin-left: auto;
+  padding-left: 0.4em;
+  font-weight: 700;
+  color: var(--hud-amber);
+  white-space: nowrap;
+}
+.ak2-hud.gate-open .hud-objective .k {
+  background: var(--hud-ok);
+  color: #00180e;
+}
+.ak2-hud.gate-open .hud-objective .d {
+  color: var(--hud-ok);
+}
+/* next leg of the recommended route: outlined chip (the objective chip is filled) */
+.hud-route {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  margin-top: 0.32em;
+  font-size: 0.8em;
+  line-height: 1.3;
+}
+.hud-route .k {
+  flex: none;
+  padding: 0 0.4em;
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #cdbbff;
+  background: rgba(38, 28, 66, 0.6);
+  border: 1px solid #cdbbff;
+}
+.hud-route .t {
+  color: #efe9ff;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.hud-route .d {
+  flex: none;
+  margin-left: auto;
+  padding-left: 0.4em;
+  font-weight: 700;
+  color: #cdbbff;
+  white-space: nowrap;
+}
+
+/* ───────────────────────── top-right: control turrets, barriers, gate ───────────────────────── */
+.hud-top-right {
+  right: 0.85em;
+  top: 0.8em;
+  text-align: right;
+}
+.hud-ctrl {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.5em;
+  white-space: nowrap;
+}
+.hud-ctrl .l {
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.hud-ctrl .n {
+  font-size: 1.35em;
+  font-weight: 700;
+  color: var(--hud-amber);
+  letter-spacing: 0.02em;
+}
+.hud-ctrl.done .n {
+  color: var(--hud-ok);
+}
+.hud-barriers {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25em;
+  margin-top: 0.3em;
+  max-width: 19em;
+}
+.hud-blabel {
+  margin-right: 0.3em;
+  font-size: 0.72em;
+  letter-spacing: 0.05em;
+  color: var(--hud-dim);
+}
+.hud-bcell {
+  min-width: 2.9em;
+  padding: 0.12em 0.3em 0.1em;
+  text-align: center;
+  font-size: 0.66em;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  color: var(--hud-dim);
+  border: 1px dashed rgba(159, 198, 206, 0.6);
+  background: rgba(0, 0, 0, 0.3);
+}
+.hud-bcell .s {
+  display: block;
+  font-weight: 400;
+  font-size: 1em;
+}
+.hud-bcell.open {
+  color: #00180e;
+  text-shadow: none;
+  border: 1px solid var(--hud-ok);
+  background: var(--hud-ok);
+}
+.hud-bnone {
+  font-size: 0.7em;
+  color: var(--hud-dim);
+}
+.hud-gate {
+  margin-top: 0.35em;
+  font-size: 0.72em;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  color: var(--hud-dim);
+}
+.hud-gate .v {
+  margin-left: 0.5em;
+  padding: 0 0.45em;
+  font-weight: 700;
+  border: 1px dashed rgba(159, 198, 206, 0.7);
+}
+.ak2-hud.gate-open .hud-gate .v {
+  color: #00180e;
+  text-shadow: none;
+  border: 1px solid var(--hud-ok);
+  background: var(--hud-ok);
+}
+
+/* ───────────────────────── top-centre: gate banner + toasts ───────────────────────── */
+.hud-top-center {
+  position: absolute;
+  left: 50%;
+  top: 0.8em;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+}
+.hud-banner {
+  position: relative;
+  padding: 0.3em 2.3em 0.35em;
+  text-align: center;
+  white-space: nowrap;
+  color: #eafff6;
+  background: linear-gradient(180deg, rgba(4, 52, 36, 0.86), rgba(2, 30, 22, 0.8));
+  border: 2px solid var(--hud-ok);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7);
+}
+/* pulsing glow as an opacity animation on its own element (compositor only, no repaint of the banner) */
+.hud-banner .g {
+  position: absolute;
+  inset: -2px;
+  box-shadow: 0 0 1.2em rgba(134, 247, 196, 0.65);
+  animation: hud-banner 1.4s ease-in-out infinite;
+}
+.hud-banner::before,
+.hud-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5em;
+  background: repeating-linear-gradient(-45deg, var(--hud-ok) 0 0.32em, rgba(0, 20, 12, 0.9) 0.32em 0.64em);
+}
+.hud-banner::before {
+  left: 0;
+}
+.hud-banner::after {
+  right: 0;
+}
+.hud-banner .m {
+  font-size: 1.22em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.hud-banner .s {
+  font-size: 0.66em;
+  letter-spacing: 0.24em;
+  color: var(--hud-ok);
+}
+@keyframes hud-banner {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.hud-toast {
+  padding: 0.16em 1em 0.2em;
+  white-space: nowrap;
+  font-size: 0.92em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #eafff6;
+  background: rgba(3, 30, 24, 0.82);
+  border: 1px solid var(--hud-ok);
+  border-left-width: 0.4em;
+  animation: hud-toast 0.25s ease-out 1;
+}
+.hud-toast .s {
+  margin-left: 0.8em;
+  font-size: 0.72em;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  color: var(--hud-ok);
+}
+.hud-toast.warn {
+  color: #fff3d6;
+  background: rgba(40, 24, 0, 0.82);
+  border-color: var(--hud-amber);
+}
+.hud-toast.warn .s {
+  color: var(--hud-amber);
+}
+@keyframes hud-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.5em);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ───────────────────────── left: weapons ───────────────────────── */
+.hud-left {
+  left: 0.85em;
+  bottom: 0.85em;
+  width: 19.4em;
+}
+.hud-wrow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1em 1.35em 1fr auto 3.9em;
+  grid-template-areas: 'sel key name ammo stat';
+  align-items: center;
+  column-gap: 0.3em;
+  margin-top: 0.28em;
+  padding: 0.2em 0.35em 0.3em 0.2em;
+  font-size: 0.8em;
+  color: var(--hud-dim);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.hud-wrow .sel {
+  grid-area: sel;
+  visibility: hidden;
+  color: var(--hud-bright);
+  font-size: 0.85em;
+}
+.hud-wrow .key {
+  grid-area: key;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.86em;
+  line-height: 1.35;
+  border: 1px solid currentColor;
+}
+.hud-wrow .name {
+  grid-area: name;
+}
+.hud-wrow .ammo {
+  grid-area: ammo;
+  text-align: right;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.hud-wrow .ammo .mx {
+  font-weight: 400;
+  opacity: 0.85;
+}
+.hud-wrow .ammo .per {
+  margin-left: 0.5em;
+  font-weight: 400;
+  font-size: 0.88em;
+}
+.hud-wrow .ammo .inf {
+  font-size: 1.35em;
+  line-height: 0.8;
+  vertical-align: -0.08em;
+}
+.hud-wrow .stat {
+  grid-area: stat;
+  text-align: center;
+  font-size: 0.83em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  border: 1px solid currentColor;
+}
+.hud-wrow .cd {
+  position: absolute;
+  left: 0.2em;
+  right: 0.2em;
+  bottom: 0.08em;
+  height: 0.14em;
+  min-height: 2px;
+  background: rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.hud-wrow .cd i {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: 0 50%;
+}
+/* selected weapon: frame + marker + bold name, and the remaining ammo as a large second line */
+.hud-wrow.selected {
+  grid-template-columns: 1em 1.35em 1fr auto;
+  grid-template-areas:
+    'sel key name stat'
+    'ammo ammo ammo ammo';
+  row-gap: 0.05em;
+  color: var(--hud-text);
+  font-size: 0.92em;
+  font-weight: 700;
+  padding-bottom: 0.4em;
+  border: 1px solid var(--hud-line);
+  background: linear-gradient(90deg, rgba(99, 230, 242, 0.26), rgba(99, 230, 242, 0.07));
+  box-shadow: inset 0.22em 0 0 var(--hud-line);
+}
+.hud-wrow.selected .sel {
+  visibility: visible;
+}
+.hud-wrow.selected .stat {
+  min-width: 4.9em;
+}
+.hud-wrow.selected .ammo {
+  font-size: 1.5em;
+  line-height: 1.05;
+  padding-right: 0.05em;
+}
+.hud-wrow.selected .ammo .mx,
+.hud-wrow.selected .ammo .per {
+  font-size: 0.6em;
+}
+.hud-wrow.selected .cd {
+  color: var(--hud-line);
+  height: 0.2em;
+}
+.hud-wrow[data-st='ready'] .stat {
+  color: var(--hud-ok);
+}
+.hud-wrow[data-st='cool'] .stat {
+  color: var(--hud-line);
+  border-style: dashed;
+}
+.hud-wrow[data-st='nolock'] .stat {
+  color: var(--hud-amber);
+  border-style: dashed;
+}
+.hud-wrow[data-st='noen'] .stat,
+.hud-wrow[data-st='empty'] .stat {
+  color: #fff;
+  border-color: var(--hud-red);
+  background: rgba(150, 16, 10, 0.75);
+}
+.hud-wrow[data-st='empty'] .ammo {
+  color: var(--hud-red);
+}
+.hud-notice {
+  margin-top: 0.4em;
+  min-height: 1.75em;
+  padding: 0.18em 0.5em;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: transparent;
+  text-shadow: none;
+  border: 1px solid transparent;
+}
+.hud-notice.on {
+  color: #fff;
+  text-shadow: var(--hud-outline);
+  border: 1px solid var(--hud-red);
+  background: rgba(130, 12, 8, 0.78);
+}
+.hud-notice.on.flash {
+  animation: hud-blink 0.24s steps(2, jump-none) infinite;
+}
+.hud-notice.on.amber {
+  border-color: var(--hud-amber);
+  background: rgba(70, 40, 0, 0.8);
+}
+
+/* ───────────────────────── right: EN, quick boost, movement mode ───────────────────────── */
+.hud-right {
+  right: 0.85em;
+  bottom: 0.85em;
+  width: 19.4em;
+}
+.hud-enhead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+.hud-enhead .lbl {
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--hud-line);
+}
+.hud-enhead .num {
+  font-size: 1.4em;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 3.1em;
+  text-align: right;
+}
+.hud-enhead .max {
+  font-size: 0.86em;
+  color: var(--hud-dim);
+}
+.hud-enstate {
+  margin-left: auto;
+  padding: 0.05em 0.45em;
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid currentColor;
+  color: var(--hud-ok);
+}
+.hud-enbar {
+  position: relative;
+  height: 0.8em;
+  margin-top: 0.3em;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(99, 230, 242, 0.55);
+}
+.hud-enbar .clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.hud-enbar .fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 50%;
+  background: linear-gradient(180deg, #a8f6ff, #35c6d8 55%, #1f9cb0);
+  will-change: transform;
+}
+.hud-enbar .stripes {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: repeating-linear-gradient(110deg, rgba(255, 255, 255, 0.55) 0 0.3em, rgba(255, 255, 255, 0) 0.3em 0.9em);
+  background-size: 1.8em 100%;
+}
+.hud-enbar .mark {
+  position: absolute;
+  top: -0.3em;
+  bottom: -0.3em;
+  width: 2px;
+  margin-left: -1px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8);
+}
+.hud-enbar .mark b {
+  position: absolute;
+  left: 0.35em;
+  top: 100%;
+  margin-top: -0.1em;
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #fff;
+}
+.hud-right[data-en='regen'] .hud-enbar .stripes {
+  opacity: 1;
+  animation: hud-stripes 0.7s linear infinite;
+}
+@keyframes hud-stripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 1.8em 0;
+  }
+}
+.hud-right[data-en='wait'] .hud-enstate {
+  color: var(--hud-amber);
+  border-style: dashed;
+}
+.hud-right[data-en='wait'] .hud-enbar {
+  border-style: dashed;
+  border-color: var(--hud-amber);
+}
+.hud-right[data-en='air'] .hud-enstate {
+  color: #c7d2d6;
+  border-style: dotted;
+}
+.hud-right[data-en='air'] .hud-enbar {
+  border-style: dotted;
+  border-color: #c7d2d6;
+}
+.hud-right[data-en='air'] .hud-enbar .fill,
+.hud-right[data-en='use'] .hud-enbar .fill {
+  background: linear-gradient(180deg, #e3eef0, #9fb7bd 55%, #7d979e);
+}
+.hud-right[data-en='use'] .hud-enstate {
+  color: var(--hud-amber);
+}
+.hud-right[data-en='use'] .hud-enbar {
+  border-color: var(--hud-amber);
+}
+.hud-right[data-en='full'] .hud-enstate {
+  color: var(--hud-line);
+}
+.hud-right.en-low .hud-enbar .fill {
+  background: linear-gradient(180deg, #ffd58a, #ffab2e 55%, #d9821a);
+}
+.hud-right.en-low .hud-enhead .num {
+  color: var(--hud-amber);
+}
+.hud-qb {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  column-gap: 0.5em;
+  margin-top: 0.85em;
+  white-space: nowrap;
+}
+.hud-qb .lbl {
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--hud-line);
+}
+.hud-qb .st {
+  min-width: 4.6em;
+  padding: 0.02em 0.5em;
+  text-align: center;
+  font-size: 0.92em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+}
+.hud-qb .bar {
+  position: relative;
+  height: 0.38em;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(99, 230, 242, 0.45);
+  overflow: hidden;
+}
+.hud-qb .bar i {
+  position: absolute;
+  inset: 0;
+  background: var(--hud-line);
+  transform-origin: 0 50%;
+}
+.hud-qb .cost {
+  font-size: 0.68em;
+  color: var(--hud-dim);
+}
+.hud-qb[data-qb='ready'] .st {
+  color: #00180e;
+  text-shadow: none;
+  border-color: var(--hud-ok);
+  background: var(--hud-ok);
+}
+.hud-qb[data-qb='cool'] .st {
+  color: var(--hud-line);
+  border-style: dashed;
+}
+.hud-qb[data-qb='noen'] .st {
+  color: #fff;
+  border-color: var(--hud-red);
+  background: rgba(150, 16, 10, 0.75);
+}
+.hud-qb[data-qb='noen'] .bar i {
+  background: var(--hud-red);
+}
+.hud-qb[data-qb='brake'] .st {
+  color: var(--hud-amber);
+  border-style: dashed;
+}
+.hud-qb.reject .st {
+  animation: hud-blink 0.2s steps(2, jump-none) infinite;
+  outline: 2px solid var(--hud-red);
+}
+.hud-qb .cost.warn {
+  color: var(--hud-red);
+  font-weight: 700;
+}
+.hud-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.4em;
+  margin-top: 0.5em;
+  padding-top: 0.4em;
+  border-top: 1px solid rgba(99, 230, 242, 0.22);
+}
+.hud-mode .cell {
+  min-width: 0;
+}
+.hud-mode .v {
+  margin-top: 0.1em;
+  padding: 0.06em 0.4em;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border-left: 0.25em solid var(--hud-line);
+  background: rgba(99, 230, 242, 0.1);
+}
+.hud-mode .v[data-m='glide'] {
+  border-left-style: double;
+  border-left-width: 0.4em;
+  background: rgba(99, 230, 242, 0.24);
+}
+.hud-mode .v[data-m='quickboost'] {
+  color: #1c1000;
+  text-shadow: none;
+  border-left-color: #fff;
+  background: var(--hud-amber);
+}
+.hud-mode .v[data-m='brake'] {
+  color: #fff;
+  border-left-color: var(--hud-red);
+  background: rgba(150, 16, 10, 0.6);
+}
+.hud-mode .v[data-m='flying'] {
+  border-left-color: var(--hud-amber);
+  background: rgba(255, 181, 58, 0.24);
+}
+.hud-mode .v[data-m='rising'],
+.hud-mode .v[data-m='falling'] {
+  border-left-style: dashed;
+}
+.hud-speed {
+  grid-column: 1 / span 2;
+  margin-top: 0.3em;
+  font-size: 0.7em;
+  color: var(--hud-dim);
+  white-space: nowrap;
+}
+.hud-speed b {
+  display: inline-block;
+  min-width: 2.6em;
+  text-align: right;
+  color: var(--hud-text);
+}
+.hud-speed .g {
+  margin-left: 0.9em;
+}
+
+/* ───────────────────────── bottom: HP (one slim row so the mech's legs stay visible above it) ───────────────────────── */
+.hud-bottom {
+  left: 50%;
+  bottom: 0.85em;
+  width: min(30em, calc(100% - 42.6em));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.28em 0.75em 0.3em;
+  background: linear-gradient(180deg, rgba(8, 22, 28, 0.62), rgba(4, 11, 15, 0.5));
+}
+.hud-hphead {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+.hud-hphead .lbl {
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--hud-line);
+}
+.hud-hphead .num {
+  font-size: 1.4em;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 2.6em;
+  text-align: right;
+}
+.hud-hphead .max {
+  font-size: 0.86em;
+  color: var(--hud-dim);
+}
+.hud-hpwarn {
+  display: none;
+  position: absolute;
+  right: -1px;
+  bottom: 100%;
+  margin-bottom: 0.35em;
+  padding: 0.05em 0.6em;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #fff;
+  border: 1px solid var(--hud-red);
+  background: rgba(150, 16, 10, 0.82);
+  animation: hud-blink 0.5s steps(2, jump-none) infinite;
+}
+.hud-hpbar {
+  position: relative;
+  flex: 1 1 auto;
+  height: 0.85em;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(99, 230, 242, 0.55);
+  overflow: hidden;
+}
+.hud-hpbar i {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+.hud-hpbar .ghost {
+  background: #fff;
+  opacity: 0.75;
+}
+.hud-hpbar .fill {
+  background: linear-gradient(180deg, #b9fbe0, #49d6a0 55%, #2aa57b);
+}
+.hud-hpbar .seg {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 calc(10% - 1px), rgba(0, 0, 0, 0.6) calc(10% - 1px) 10%);
+}
+.hud-bottom[data-hp='mid'] .hud-hpbar .fill {
+  background: linear-gradient(180deg, #ffe3a6, #ffb53a 55%, #d98a1c);
+}
+.hud-bottom[data-hp='low'] .hud-hpbar .fill {
+  background: linear-gradient(180deg, #ffb1a8, #ff5046 55%, #c9271e);
+}
+.hud-bottom[data-hp='low'] .hud-hpbar {
+  border-color: var(--hud-red);
+}
+.hud-bottom[data-hp='low'] .hud-hphead .num {
+  color: #ff8d85;
+}
+.hud-bottom[data-hp='low'] .hud-hpwarn {
+  display: block;
+}
+.hud-bottom[data-hp='low'] {
+  border-color: rgba(255, 80, 70, 0.7);
+}

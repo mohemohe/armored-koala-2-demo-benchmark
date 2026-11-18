@@ -1,0 +1,877 @@
+/* AK2 DEMO UI: 近未来メカHUD (ライトシアン + アンバー警告色, 等幅フォント) */
+:root {
+  --u: clamp(12px, 1.7vmin, 32px);
+  --bg: #04080c;
+  --panel: rgba(7, 17, 25, 0.62);
+  --panel-solid: #0a151d;
+  --line: rgba(143, 234, 255, 0.34);
+  --cyan: #8feaff;
+  --cyan-dim: rgba(143, 234, 255, 0.62);
+  --amber: #ffc25c;
+  --warn: #ff7a5c;
+  --text: #d6f4fb;
+  --dim: #82a6b0;
+  --font: ui-monospace, 'SF Mono', 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, 'Noto Sans Mono CJK JP', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--u);
+  user-select: none;
+  -webkit-user-select: none;
+}
+#game-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--bg);
+}
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ buttons */
+.btn {
+  font: inherit;
+  color: var(--text);
+  background: rgba(10, 26, 36, 0.85);
+  border: 1px solid var(--cyan-dim);
+  padding: 0.55em 1.2em;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.btn:hover:not(:disabled) {
+  background: rgba(30, 70, 90, 0.9);
+  border-color: var(--cyan);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+.btn-primary {
+  color: #1a1204;
+  background: var(--amber);
+  border-color: var(--amber);
+  font-weight: 700;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #ffd587;
+  border-color: #ffd587;
+}
+.btn-big {
+  font-size: 1.25em;
+  padding: 0.6em 2.2em;
+}
+
+/* ------------------------------------------------------------------ HUD */
+.hud {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  font-size: var(--u);
+}
+.hud-wrap {
+  position: absolute;
+  inset: 0;
+}
+.hud-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 40, 20, 0) 42%, rgb(255, 40, 20) 100%);
+}
+.hud-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hud-panel {
+  position: absolute;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cyan);
+  padding: 0.45em 0.8em;
+  line-height: 1.35;
+}
+.hud-head {
+  color: var(--dim);
+  font-size: 0.8em;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.25em;
+}
+.hud-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  white-space: nowrap;
+}
+.hud-k {
+  color: var(--dim);
+  min-width: 5.2em;
+  font-size: 0.85em;
+}
+.hud-v {
+  color: var(--text);
+  font-weight: 700;
+}
+.hud-dim {
+  color: var(--dim);
+  font-size: 0.85em;
+}
+
+/* mission (top-left) */
+.hud-mission {
+  top: 1em;
+  left: 1em;
+  min-width: 19em;
+}
+.hud-sector {
+  color: var(--cyan);
+}
+.hud-pips {
+  display: inline-flex;
+  gap: 0.25em;
+}
+.hud-pip {
+  width: 0.9em;
+  height: 0.9em;
+  border: 1px solid var(--cyan-dim);
+  transform: rotate(45deg) scale(0.85);
+}
+.hud-pip.on {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+.hud-barriers {
+  display: inline-flex;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+.hud-chip {
+  font-size: 0.8em;
+  padding: 0 0.4em;
+  border: 1px solid var(--cyan-dim);
+  color: var(--dim);
+}
+.hud-chip.open {
+  color: #1a1204;
+  background: var(--amber);
+  border-color: var(--amber);
+  font-weight: 700;
+}
+.hud-gate {
+  margin-top: 0.25em;
+  color: var(--dim);
+  font-size: 0.9em;
+}
+.hud-gate.open {
+  color: var(--amber);
+  font-weight: 700;
+}
+.hud-gate.open::before {
+  content: '>> ';
+}
+
+/* next objective (top-center) */
+.hud-next {
+  top: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  border-left-color: var(--line);
+  /* 幅が狭いとき (1024px 級) に左のミッションパネル(約28em)・右のFCSパネルと重ならないよう、両側 29em ずつ空ける */
+  max-width: min(42vw, calc(100vw - 58em));
+}
+.hud-next-main {
+  font-weight: 700;
+  color: var(--cyan);
+}
+.hud-next-main.escape {
+  color: var(--amber);
+}
+.hud-next-sub {
+  color: var(--text);
+  font-size: 0.9em;
+}
+.hud-msgs:empty {
+  display: none;
+}
+.hud-msg {
+  margin-top: 0.3em;
+  padding: 0.1em 0.6em;
+  color: #1a1204;
+  background: var(--amber);
+  font-weight: 700;
+}
+
+/* FCS (top-right) */
+.hud-fcs {
+  top: 1em;
+  right: 1em;
+  min-width: 17em;
+}
+.hud-fcs-state[data-phase='locked'] {
+  color: var(--amber);
+}
+.hud-fcs-state[data-phase='acquiring'] {
+  color: var(--cyan);
+}
+.hud-fcs .nosol {
+  color: var(--warn);
+}
+
+/* weapons (bottom-left) */
+.hud-weapons {
+  left: 1em;
+  bottom: 1em;
+  min-width: 17em;
+}
+.hud-wrow {
+  display: grid;
+  grid-template-columns: 1.8em 1fr auto;
+  column-gap: 0.6em;
+  align-items: baseline;
+  padding: 0.15em 0.4em;
+  color: var(--dim);
+  border-left: 3px solid transparent;
+}
+.hud-wkey {
+  border: 1px solid var(--cyan-dim);
+  text-align: center;
+  font-size: 0.8em;
+}
+.hud-wammo {
+  text-align: right;
+  font-weight: 700;
+}
+.hud-wsub {
+  grid-column: 2 / 4;
+  font-size: 0.8em;
+  color: var(--dim);
+}
+.hud-wsub:empty {
+  display: none;
+}
+.hud-wrow.sel {
+  color: var(--text);
+  border-left-color: var(--amber);
+  background: rgba(255, 194, 92, 0.12);
+  font-size: 1.15em;
+}
+.hud-wrow.sel .hud-wkey {
+  background: var(--amber);
+  color: #1a1204;
+  border-color: var(--amber);
+}
+.hud-wrow.empty .hud-wammo,
+.hud-wrow.empty .hud-wsub {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+/* EN + movement (bottom-right) */
+.hud-right {
+  right: 1em;
+  bottom: 1em;
+  min-width: 19em;
+}
+.hud-bar {
+  height: 0.85em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.hud-bar .hud-fill {
+  height: 100%;
+  width: 0;
+  background: var(--cyan);
+}
+.hud-bar-en.low .hud-fill {
+  background: repeating-linear-gradient(-45deg, var(--amber) 0 6px, #b7822a 6px 12px);
+}
+.hud-bar-hp .hud-fill {
+  background: #b8f5d0;
+}
+.hud-bar-hp .hud-fill.low {
+  background: repeating-linear-gradient(-45deg, var(--warn) 0 6px, #b5432c 6px 12px);
+}
+.hud-num {
+  text-align: right;
+  font-weight: 700;
+  margin-top: 0.15em;
+}
+.hud-move {
+  margin-top: 0.4em;
+  border-top: 1px solid var(--line);
+  padding-top: 0.35em;
+}
+.hud-mode {
+  font-weight: 700;
+  padding: 0 0.5em;
+  border: 1px solid var(--cyan-dim);
+  color: var(--cyan);
+}
+.hud-mode[data-mode='GLIDE'] {
+  color: #1a1204;
+  background: var(--cyan);
+}
+.hud-mode[data-mode='QB'] {
+  color: #1a1204;
+  background: var(--amber);
+  border-color: var(--amber);
+}
+.hud-qb[data-qb='READY'] {
+  color: var(--cyan);
+}
+.hud-qb[data-qb='COOLDOWN'],
+.hud-qb[data-qb='EN不足'],
+.hud-qb[data-qb='BRAKE'] {
+  color: var(--amber);
+}
+
+/* HP (bottom-center) */
+.hud-hp {
+  left: 50%;
+  bottom: 1em;
+  transform: translateX(-50%);
+  width: min(26em, 34vw);
+}
+.hud-hp .hud-row {
+  justify-content: space-between;
+}
+
+/* notices (above HP) */
+.hud-notices {
+  position: absolute;
+  left: 50%;
+  bottom: 7em;
+  transform: translateX(-50%);
+  text-align: center;
+}
+.hud-notice {
+  display: block;
+  margin: 0.2em auto 0;
+  width: max-content;
+  max-width: 90vw;
+  padding: 0.25em 0.9em;
+  background: rgba(40, 10, 6, 0.75);
+  border: 1px solid var(--warn);
+  color: #ffd9cf;
+  font-weight: 700;
+}
+.hud-notice::before {
+  content: '! ';
+}
+
+/* SVG parts */
+.hud-lbl {
+  font-family: var(--font);
+  font-size: var(--u);
+  font-weight: 700;
+  fill: var(--text);
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.8);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.ret-base {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
+}
+.ret-prog {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 5;
+  opacity: 0;
+}
+.ret-ticks {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 3;
+  opacity: 0;
+}
+.ret-cross {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
+}
+.ret-dot {
+  fill: var(--cyan);
+}
+.ret-acquiring .ret-base {
+  stroke-dasharray: 8 8;
+  stroke-opacity: 0.85;
+}
+.ret-acquiring .ret-prog {
+  opacity: 1;
+}
+.ret-locked .ret-base {
+  stroke: var(--amber);
+  stroke-opacity: 1;
+  stroke-width: 3;
+}
+.ret-locked .ret-ticks {
+  opacity: 1;
+}
+.ret-locked .ret-cross,
+.ret-locked .ret-dot {
+  stroke: var(--amber);
+  fill: var(--amber);
+}
+.ret-locked .ret-cross {
+  fill: none;
+}
+.ret-label {
+  fill: var(--cyan);
+}
+.ret-locked .ret-label {
+  fill: var(--amber);
+}
+.ret-aim {
+  fill: #ffe9a8;
+}
+.ret-aim.nosol {
+  fill: var(--warn);
+}
+
+.hud-mk {
+  color: var(--cyan);
+}
+.hud-mk .hud-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
+}
+.hud-mk .hud-fill {
+  fill: currentColor;
+}
+.hud-mk .hud-lbl {
+  fill: currentColor;
+}
+.hud-mk-arrow polygon {
+  fill: currentColor;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 1.2;
+}
+.hud-mk-target.acq {
+  color: var(--cyan);
+}
+.hud-mk-target.acq .hud-stroke {
+  stroke-dasharray: 5 3;
+}
+.hud-mk-target.locked {
+  color: var(--amber);
+}
+.hud-mk-aim.solved {
+  color: #ffe9a8;
+}
+.hud-mk-aim.nosol {
+  color: var(--warn);
+}
+.hud-mk-control.dim {
+  color: var(--cyan-dim);
+}
+.hud-mk-control.dim .hud-lbl {
+  font-size: 0.85em;
+  font-weight: 400;
+}
+.hud-mk-control.next,
+.hud-mk-escape.next {
+  color: var(--amber);
+}
+.hud-mk-control.next .hud-mk-shape {
+  transform: scale(1.5);
+}
+.hud-mk-telegraph {
+  color: var(--warn);
+}
+.hud-bang {
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--warn);
+}
+.pulse {
+  animation: hud-pulse 0.45s steps(2, jump-none) infinite;
+}
+@keyframes hud-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+.hud-wedge-arc {
+  fill: none;
+  stroke: var(--warn);
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+.hud-wedge-tip {
+  fill: var(--warn);
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 1;
+}
+
+/* ------------------------------------------------------------------ garage */
+.garage {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  font-size: var(--u);
+  display: grid;
+  /* パネル幅は文字サイズ (em = --u = 高さ基準) の 30em を上限にしつつ、画面幅の 28.7% でも上限にする (16:9 ではどちらも同じ値なので変わらない)。
+     5:4 / 4:3 のように高さの割に幅が狭い画面で、左右のパネルが中央の 3D (機体の頭部) を覆わないようにする */
+  grid-template-columns: minmax(18em, min(30em, 28.7vw)) minmax(0, 1fr) minmax(18em, min(30em, 28.7vw));
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.8em 1em;
+  padding: 1em;
+}
+.gar-title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 1.2em;
+}
+.gar-logo {
+  font-size: 1.9em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+.gar-sub {
+  color: var(--amber);
+  letter-spacing: 0.14em;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+.gar-side {
+  pointer-events: auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  padding-right: 0.2em;
+}
+.gar-left {
+  grid-column: 1;
+}
+.gar-right {
+  grid-column: 3;
+}
+.gar-sec {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0.6em 0.7em;
+}
+.gar-h {
+  margin: 0 0 0.5em;
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 0.12em;
+}
+.gar-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+}
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: rgba(8, 20, 28, 0.78);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  padding: 0.4em 0.7em;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--cyan);
+}
+.card.selected {
+  border-color: var(--amber);
+  border-left-color: var(--amber);
+  background: rgba(70, 48, 10, 0.62);
+}
+.card-name {
+  font-weight: 700;
+}
+.card.selected .card-name::after {
+  content: '  << 選択中';
+  color: var(--amber);
+  font-size: 0.85em;
+}
+.card-spec {
+  color: var(--cyan);
+  font-size: 0.82em;
+  margin: 0.1em 0 0.25em;
+}
+.card-line {
+  font-size: 0.8em;
+  line-height: 1.35;
+  color: var(--text);
+}
+.tag {
+  display: inline-block;
+  margin-right: 0.5em;
+  padding: 0 0.35em;
+  font-size: 0.9em;
+  font-weight: 700;
+}
+.tag.pro {
+  color: #062229;
+  background: var(--cyan);
+}
+.tag.con {
+  color: #1a1204;
+  background: var(--amber);
+}
+.stat-grid,
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25em 1em;
+  margin: 0;
+}
+.stat-k {
+  color: var(--dim);
+  font-size: 0.9em;
+}
+.stat-v {
+  margin: 0;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text);
+}
+.gar-bottom {
+  grid-column: 1 / -1;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0.6em 1em;
+}
+.gar-selected {
+  font-weight: 700;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+.gar-status {
+  flex: 1;
+  color: var(--dim);
+  font-size: 0.85em;
+  min-width: 0;
+}
+.gar-buttons {
+  display: flex;
+  gap: 0.8em;
+  order: 3;
+}
+.gar-status {
+  order: 2;
+}
+.gar-selected {
+  order: 1;
+}
+
+/* ------------------------------------------------------------------ boot loading (index.html #boot-loading) */
+.boot-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  pointer-events: none;
+  font-size: var(--u);
+}
+.boot-title {
+  font-size: 1.9em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+.boot-text {
+  color: var(--amber);
+  letter-spacing: 0.14em;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  animation: boot-pulse 1.4s ease-in-out infinite;
+}
+@keyframes boot-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-text {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ overlays */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 10, 0.72);
+  font-size: var(--u);
+}
+.overlay-top {
+  z-index: 50;
+}
+.help-overlay {
+  z-index: 45;
+}
+.dialog {
+  background: var(--panel-solid);
+  border: 1px solid var(--cyan-dim);
+  border-top: 3px solid var(--cyan);
+  padding: 1.3em 1.8em 1.5em;
+  width: min(44em, 92vw);
+  max-height: 92vh;
+  overflow: auto;
+  outline: none;
+}
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 0.8em;
+}
+.dialog-title {
+  margin: 0;
+  font-size: 1.6em;
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+}
+.dialog-title.warn {
+  color: var(--amber);
+  font-size: 1.3em;
+  margin-bottom: 0.5em;
+}
+.dialog-lead {
+  margin: 0.6em 0;
+  color: var(--amber);
+  font-weight: 700;
+}
+.dialog-text {
+  margin: 0.6em 0;
+  line-height: 1.6;
+  color: var(--text);
+}
+.dialog-detail {
+  margin: 0.4em 0;
+  font-size: 0.8em;
+  color: var(--dim);
+  word-break: break-all;
+}
+.dialog-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8em;
+  margin-top: 1.1em;
+}
+.result-title.clear {
+  color: var(--amber);
+  font-size: 2.2em;
+}
+.result-title.fail {
+  color: var(--warn);
+  font-size: 2.2em;
+}
+.result-grid {
+  margin-top: 0.6em;
+  padding: 0.6em 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-size: 1.1em;
+}
+.help-dialog {
+  width: min(62em, 94vw);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1em;
+}
+.help-body {
+  overflow: auto;
+  min-height: 0;
+}
+.help-h {
+  margin: 1em 0 0.4em;
+  font-size: 1em;
+  color: var(--cyan);
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.2em;
+}
+.help-grid {
+  display: grid;
+  grid-template-columns: 11em 1fr;
+  gap: 0.35em 1em;
+  margin: 0;
+}
+.help-key {
+  color: var(--amber);
+  font-weight: 700;
+}
+.help-desc {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.92em;
+}
+.lock-toast {
+  position: fixed;
+  top: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  padding: 0.4em 1.2em;
+  background: var(--panel-solid);
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "armored-koala-2-demo",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "description": "ARMORED KOALA 2 (AK2) DEMO - Three.js TPS high-speed mech action shooter",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "verify:stage": "tsx scripts/verify-stage.ts",
+    "test:sim": "tsx scripts/sim-tests.ts",
+    "bot": "tsx scripts/combat-bot.ts"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "@types/three": "0.186.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vite": "8.3.1"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

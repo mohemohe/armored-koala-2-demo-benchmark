@@ -1,0 +1,1 @@
+{"name":"armored-koala-2","version":"1.2.0","private":true,"type":"module","dependencies":{"three":"file:vendor/three"},"scripts":{"dev":"node scripts/dev.js","build":"node scripts/build.js","test":"node --test tests/*.test.* && node tests/movement.mjs"}}

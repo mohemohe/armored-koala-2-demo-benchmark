@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ARMORED KOALA 2 DEMO</title>
+    <!-- インラインの data URI のアイコン (外部ファイルを取得しないので、既定のアイコン取得の 404 が出ない) -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23071119'/%3E%3Ccircle cx='7.5' cy='9.5' r='5.5' fill='%23aab6bd'/%3E%3Ccircle cx='24.5' cy='9.5' r='5.5' fill='%23aab6bd'/%3E%3Ccircle cx='16' cy='18' r='10.5' fill='%2378858c'/%3E%3Cellipse cx='16' cy='20.5' rx='4' ry='3' fill='%23101418'/%3E%3Ccircle cx='11.5' cy='15' r='1.7' fill='%238feaff'/%3E%3Ccircle cx='20.5' cy='15' r='1.7' fill='%238feaff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" hidden></div>
+    <div id="garage" hidden></div>
+    <div id="screens"></div>
+    <!-- 起動中の表示: 3D 描画の準備ができて格納庫の最初の 1 枚が出たら src/ui/app.ts が取り除く (クリックは素通しする) -->
+    <div id="boot-loading" class="boot-loading" role="status" aria-live="polite">
+      <div class="boot-title">ARMORED KOALA 2</div>
+      <div class="boot-text">読み込み中<span class="boot-dots" aria-hidden="true">...</span></div>
+    </div>
+    <noscript>このゲームにはJavaScriptが必要です。</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
