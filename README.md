@@ -59,11 +59,11 @@ EN（エネルギー）の消費・回復・待機時間、QB（クイックブ�
 弾体は発射後に18m/s²の重力加速度を受け、等速直線運動する目標への到達時間を解析的または数値的に求めたうえで、射出方向を決定します。  
 さらに、フレームレート非依存のシミュレーション、高速移動時のすり抜け防止、放物線軌道の衝突判定など、ゲーム物理の正確な実装が求められます。
 
-## 使用ハーネス
+## 使用ハーネス・effort
 
-- **OpenAI GPT系モデル**: [Codex](https://openai.com/ja-JP/codex/)
-- **Anthropic Claude系モデル**: [Claude Code](https://claude.com/ja/product/claude-code)
-- **その他のモデル**: [OpenCode](https://opencode.ai/ja)
+- **OpenAI GPT系モデル**: [Codex](https://openai.com/ja-JP/codex/) Ultra
+- **Anthropic Claude系モデル**: [Claude Code](https://claude.com/ja/product/claude-code) xhigh + ultracode
+- **その他のモデル**: [OpenCode](https://opencode.ai/ja) 原則max
 
 ### ベンチマーク実行方法
 
